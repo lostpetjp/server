@@ -1,7 +1,7 @@
 .DS_Store
 .vscode
 
-/var/www/lib/secret
+/var/www/secret
 /var/www/lib/aws
 /var/www/lostpet.jp/lib/Secret
 
