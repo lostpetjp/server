@@ -1,0 +1,14 @@
+.DS_Store
+.vscode
+
+/var/www/lib/secret
+/var/www/lib/aws
+/var/www/lostpet.jp/lib/Secret
+
+/documents
+/documents/fswatch.sh
+/documents/rsync.sh
+/documents/httpd.conf
+/documents/opcache.ini
+/documents/php.ini
+/documents/config.inc.php
