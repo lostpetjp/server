@@ -15,7 +15,7 @@ class Discord
 
   public function __destruct()
   {
-    if (!$this->sent) $this->send();
+    $this->send();
   }
 
   private function send(): void
