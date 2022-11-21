@@ -17,14 +17,6 @@ class Json2Node
   {
     if (null === $options) {
       return '';
-    } elseif (is_int($options['id' ?? null])) {
-      foreach (self::$extensions as $extension) {
-        if ($extension->id === $options['id']) {
-          return $options = self::convertTo($extension->convertTo($options));
-        }
-      }
-
-      return '';
     } elseif (is_string($options['tagName'] ?? null)) {
       return self::convertTo($options);
     } elseif (is_iterable($options)) {
