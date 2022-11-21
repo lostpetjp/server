@@ -1,2 +1,2 @@
 <?php
-require './class.php';
+require __DIR__ . '/class.php';
