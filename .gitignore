@@ -4,6 +4,10 @@
 /var/www/secret
 /var/www/lib/aws
 /var/www/lostpet.jp/lib/Secret
+/var/www/lostpet.jp/public_html/script.js
+/var/www/lostpet.jp/public_html/style.css
+/var/www/lostpet.jp/public_html/scripts
+/var/www/lostpet.jp/public_html/styles
 
 /documents
 /documents/fswatch.sh
