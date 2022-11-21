@@ -62,7 +62,7 @@ class RDS
             ]),
         ]);
 
-        Process::error(500);
+        Document::error(500);
     }
 
     static private function client(): PDO
