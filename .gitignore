@@ -1,5 +1,6 @@
 .DS_Store
 .vscode
+.preview
 
 /var/www/secret
 /var/www/lib/aws
