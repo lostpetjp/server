@@ -3,17 +3,12 @@
 .preview
 
 /var/www/secret
-/var/www/lib/aws
+/var/www/lib
 /var/www/lostpet.jp/lib/Secret
+/var/www/lostpet.jp/lib/Config
 /var/www/lostpet.jp/public_html/script.js
 /var/www/lostpet.jp/public_html/style.css
 /var/www/lostpet.jp/public_html/scripts
 /var/www/lostpet.jp/public_html/styles
 
 /documents
-/documents/fswatch.sh
-/documents/rsync.sh
-/documents/httpd.conf
-/documents/opcache.ini
-/documents/php.ini
-/documents/config.inc.php
