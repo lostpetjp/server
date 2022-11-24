@@ -6,6 +6,7 @@ class HTMLDocumentPrivacyContent implements HTMLDocumentContentInterface
   static public string $template = HTMLDocumentDocTemplate::class;
   static public int $id = 2;
 
+  static public int $cache_time = 1;
   static public string $pathname = "/privacy";
   static public string $search = "";
 
@@ -30,7 +31,10 @@ class HTMLDocumentPrivacyContent implements HTMLDocumentContentInterface
 
   static public function ready(): void
   {
-    Etag::generate(_PATH_, max(filemtime(__FILE__), $_SERVER["REQUEST_TIME"] - 3600));
+    if (1 === _STAGE_) {
+      self::$cache_time = 600;
+      Etag::generate(_PATH_, max(filemtime(__FILE__), $_SERVER["REQUEST_TIME"] - 3600));
+    }
   }
 
   static public function create(): array
@@ -104,6 +108,7 @@ class HTMLDocumentPrivacyContent implements HTMLDocumentContentInterface
                   "Google Analytics (",
                   [
                     "attribute" => [
+                      "class" => "a1",
                       "href" => "//www.google.com/analytics/",
                       "rel" => "noopener",
                       "target" => "_blank",
@@ -117,6 +122,7 @@ class HTMLDocumentPrivacyContent implements HTMLDocumentContentInterface
                   "Google Adsense (",
                   [
                     "attribute" => [
+                      "class" => "a1",
                       "href" => "//policies.google.com/technologies/ads?hl=ja",
                       "rel" => "noopener",
                       "target" => "_blank",

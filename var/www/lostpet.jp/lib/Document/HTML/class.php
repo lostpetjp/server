@@ -6,24 +6,27 @@ class HTMLDocument
 {
   private object $client;
 
-  static public function getClient(string $path, int $mode): object
+  static public function getClient(string $pathname, int $mode): object
   {
     $content = "";
 
     // /terms
-    if ("/terms" === $path) {
+    if ("/terms" === $pathname) {
       require __DIR__ . '/contents/terms/index.php';
       $content = HTMLDocumentTermsContent::class;
       // privacy
-    } elseif ("/privacy" === $path) {
+    } elseif ("/privacy" === $pathname) {
       require __DIR__ . '/contents/privacy/index.php';
       $content = HTMLDocumentPrivacyContent::class;
+      // contact
+    } elseif ("/contact" === $pathname) {
+      require __DIR__ . '/contents/contact/index.php';
+      $content = HTMLDocumentContactContent::class;
       // fallback
     } else {
-      require __DIR__ . '/clients/terms/index.php';
+      require __DIR__ . '/contents/terms/index.php';
       $content = HTMLDocumentTermsContent::class;
     }
-
 
     return new HTMLDocumentClient($content, $mode);
   }
@@ -41,12 +44,134 @@ class HTMLDocument
 
     $noindex = $this->client->noindex;
 
+    // create style
+    $style_map = [
+      "global" => "",
+      "min360" => "",
+      "min480" => "",
+      "min768" => "",
+      "min1024" => "",
+      "hover" => "",
+      "light" => "",
+      "dark" => "",
+    ];
+
+    $all_css_text = "";
+    $default_css = [];
+
+    foreach ([
+      3,
+      ...$this->client->css,
+    ] as $id) {
+      $css_text = file_get_contents(_DIR_ . "/public_html/styles/{$id}.css");
+
+      $block_positions = [];
+
+      foreach ([
+        "@media screen and (min-width:360px){",
+        "@media screen and (min-width:480px){",
+        "@media screen and (min-width:768px){",
+        "@media screen and (min-width:1024px){",
+        "@media (hover:hover) and (prefers-color-scheme:light){",
+        "@media (hover:hover) and (prefers-color-scheme:dark){",
+        "@media (prefers-color-scheme:light){",
+        "@media (prefers-color-scheme:dark){",
+        "@media (hover:hover){",
+      ] as $prefix) {
+        $position = strpos($css_text, $prefix);
+        if (false !== $position) $block_positions[] = $position;
+      }
+
+      sort($block_positions);
+
+      $css_texts = [];
+
+      if ($block_positions) {
+        if ($block_positions[0]) $css_texts[] = substr($css_text, 0, $block_positions[0]);
+
+        for ($index = 0, $l = count($block_positions); $l > $index; $index++) {
+          $position = $block_positions[$index];
+          $slice_options = [$position];
+          if (($index + 1) !== $l) $slice_options[] = ($block_positions[1 + $index] - $position);
+          $css_texts[] = substr($css_text, ...$slice_options);
+        }
+      } else {
+        $css_texts[] = $css_text;
+      }
+
+      foreach ($css_texts as $css_text) {
+        if (0 === strpos($css_text, "@")) {
+          $char = substr($css_text, 0, 35);
+          $char8 = $char[8];
+
+          if ("h" === $char8) {
+            if (isset($css_text[47]) && "(" === $char[25]) {
+              if ("l" === $css_text[47]) {
+                $type = "hover:light";
+                $start = 54;
+              } else {
+                $type = "hover:dark";
+                $start = 53;
+              }
+            } else {
+              $type = "hover";
+              $start = 21;
+            }
+          } elseif ("p" === $char8) {
+            if ("l" === $char[29]) {
+              $type = "light";
+              $start = 36;
+            } else {
+              $type = "dark";
+              $start = 35;
+            }
+          } else {
+            $size = (int)substr($char, -6);
+            $type = "min{$size}";
+            $start = 1024 === $size ? 37 : 36;
+          }
+        } else {
+          $type = "global";
+          $start = 0;
+        }
+
+        $style_map["hover" === substr($type, 0, 5) ? "hover" : (in_array($type, ["light", "dark",], true) ? "global" : $type)] .= ($css_text = ($start ? substr($css_text, $start, -1) : $css_text));
+
+        $default_css[] = [
+          "id" => $id,
+          "text" => $css_text,
+          "type" => $type,
+          "position" => [],
+        ];
+      }
+    }
+
+    foreach ([
+      "global",
+      "min360",
+      "min480",
+      "min768",
+      "min1024",
+      "hover",
+      "light",
+      "dark",
+    ] as $key) {
+      if ($style_map[$key]) {
+        $prefix = "hover" === $key ? "@media (hover:hover){" : ("global" === $key ? "" : "@media screen and (min-width:" . substr($key, 3) . "px){");
+        $all_css_text .= $prefix . $style_map[$key] . ($prefix ? "}" : "");
+      }
+    }
+
+    foreach ($default_css as $index => $entry) {
+      $text = $entry["text"];
+      $default_css[$index]["position"] = "" === $text ? [0, 0,] : [strpos($all_css_text, $text), strlen($text)];
+    }
+
     $html =
       '<!DOCTYPE html>'
       . '<html class="t1">'
       .   '<head>'
       .     '<meta charset="UTF-8">'
-      .     implode("", array_map(fn (int $id) => '<link as="style" href="/styles/' . $id . '.css?v=' . Config::$version . '" rel="preload">', $this->client->css))
       .     implode("", array_map(fn (int $id) => '<link as="script" crossOrigin="anonymous" href="/scripts/' . $id . '.js?v=' . Config::$version . '" rel="preload">', $this->client->js))
       .     '<link as="style" href="/style.css?v=' . Config::$version . '" rel="preload">'
       .     '<link as="script" href="/script.js?v=' . Config::$version . '" rel="preload">'
@@ -74,10 +199,17 @@ class HTMLDocument
       .     '<link href="/manifest.webmanifest" rel="manifest">'
       .     '<link color="#228ae6" href="/safari-pinned-tab.svg" rel="mask-icon">'
       .     '<link href="/style.css?v=' . Config::$version . '" rel="stylesheet">'
-      .     implode("", array_map(fn (int $id) => '<link href="/styles/' . $id . '.css?v=' . Config::$version . '" rel="stylesheet">', $this->client->css))
+      .     '<style>'
+      .       $all_css_text
+      .     '</style>'
       .     '<script>'
       .       '(function(){var t=localStorage.getItem("t");("2"===t||"1"!==t&&matchMedia("(prefers-color-scheme:dark)").matches)&&document.documentElement.classList.replace("t1","t2")}());'
       .       'self.a=' . json_encode([
+        "css" => array_map(fn (array $entry) => [
+          "id" => $entry["id"],
+          "position" => $entry["position"],
+          "type" => $entry["type"],
+        ], $default_css),
         "document" => [
           "template" => $this->client->template,
           "content" => $this->client->content,
@@ -96,34 +228,39 @@ class HTMLDocument
       .            '<img class="d1a1" src="/icon.svg">'
       .         '</picture>'
       .       '</a>'
-      .       '<a class="a2 d1b" href="/">サイトに掲載</a>'
+      .       '<a class="a2 d1b ht1" href="/">サイトに掲載</a>'
       .     '</header>'
       .     '<div class="d2">'
-      //.       '<main class="d2a">'
-      .         Json2Node::create($this->client->body)  // <main class="d2a"> ... </main>
-      //.       '</main>'
+      .       Json2Node::create($this->client->body)  // <main class="d2a"> ... </main>
       .       '<nav class="d2b">'
-      .         '<div>'
-      .           '<div>'
-      .             '<h5>検索</h5>'
-      .             '<ul>'
-      .               '<li><a href="/search/lost/">迷子</a></li>'
-      .               '<li><a href="/search/find/">保護</a></li>'
+      .         '<div class="d2b1">'
+      .           '<h2 class="d2b1a">メニュー</h2>'
+      .           '<div class="d2b1b">'
+      .             '<h5 class="d2b1b1">検索</h5>'
+      .             '<ul class="d2b1b2">'
+      .               '<li><a class="a2 d2b1b2a hb1" href="/search/lost/">迷子</a></li>'
+      .               '<li><a class="a2 d2b1b2a hb1" href="/search/find/">保護</a></li>'
       .             '</ul>'
       .           '</div>'
-      .           '<div>'
-      .             '<h5>お役立ち</h5>'
-      .             '<ul>'
-      .               '<li><a href="/register">サイトに掲載する</a></li>'
-      .               '<li><a href="/poster">ポスターを作成する</a></li>'
+      .           '<div class="d2b1b d2b1c">'
+      .             '<h5 class="d2b1b1">お役立ち</h5>'
+      .             '<ul class="d2b1b2">'
+      .               '<li><a class="a2 d2b1b2a hb1" href="/register">サイトに掲載する</a></li>'
+      .               '<li><a class="a2 d2b1b2a hb1" href="/poster">ポスターを作成する</a></li>'
       .             '</ul>'
       .           '</div>'
-      .           '<div>'
-      .             '<h5>サイト案内</h5>'
-      .             '<ul>'
-      .               '<li><a href="/terms">利用規約</a></li>'
-      .               '<li><a href="/privacy">プライバシーポリシー</a></li>'
-      .               '<li><a href="/contact">問い合わせ</a></li>'
+      .           '<div class="d2b1b d2b1c">'
+      .             '<h5 class="d2b1b1">サイト案内</h5>'
+      .             '<ul class="d2b1b2">'
+      .               '<li><a class="a2 d2b1b2a hb1" href="/terms">利用規約</a></li>'
+      .               '<li><a class="a2 d2b1b2a hb1" href="/privacy">プライバシーポリシー</a></li>'
+      .               '<li><a class="a2 d2b1b2a hb1" href="/contact">問い合わせ</a></li>'
+      .             '</ul>'
+      .           '</div>'
+      .           '<div class="d2b1b d2b1c">'
+      .             '<h5 class="d2b1b1">アクセシビリティ</h5>'
+      .             '<ul class="d2b1b2">'
+      .               '<li><a class="a2 d2b1b2a hb1" role="button">カラーモード</a></li>'
       .             '</ul>'
       .           '</div>'
       .         '</div>'
@@ -140,7 +277,7 @@ class HTMLDocument
       header('content-encoding:gzip');
     }
 
-    header('cache-control:max-age=' . (property_exists($this->client, 'cache_time') ? $this->client->cache_time : 0) . ',immutable');
+    header('cache-control:max-age=' . (property_exists($this->client, 'cache_time') ? $this->client->cache_time . ",stale-while-revalidate=" . $this->client->cache_time : 0) . ',public,immutable,stale-if-error=86400');  // ,must-revalidate
     if ($noindex) header('x-robots-tag:noindex');
     header('cross-origin-embedder-policy:require-corp');
     header('cross-origin-opener-policy:same-origin');
@@ -177,9 +314,9 @@ class HTMLDocumentClient
 
     $template::$css = [
       ...$template::$css,
-      3, 4, 5, 6,
     ];
 
+    $this->cache_time = $content::$cache_time;
     $this->pathname = $content::$pathname;
     $this->search = $content::$search;
 
