@@ -50,12 +50,12 @@ class RDS
             $e_message = $e->getMessage();
         }
 
-        new Discord('error', [
+        new Discord("error", [
             "content" => implode("\n", [
-                "```\n" . $sql . "\n```",
-                "```\n" . "[" . implode(",", array_map(function ($value) {
+                substr("```\n" . $sql . "\n```", 0, 900),
+                substr("```\n" . "[" . implode(",", array_map(function ($value) {
                     return gettype($value) . ":" . json_encode($value);
-                }, $values)) . "] (" . count($values) . ")" . "\n```",
+                }, $values)) . "] (" . count($values) . ")" . "\n```", 0, 900),
                 $e_message ?? "unknown",
                 __CLASS__ . "::" . __FUNCTION__ . "()",
                 _PATH_,
