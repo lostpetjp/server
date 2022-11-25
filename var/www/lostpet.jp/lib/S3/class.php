@@ -52,7 +52,7 @@ class S3
     if ($client !== null && $credentials === null) return $client;
 
     if (!class_exists("Aws\Sdk")) {
-      require _DIR_ . "/lib/aws/vendor/autoload.php";
+      require _DIR_ . "/../lib/aws/vendor/autoload.php";
     }
 
     $config = [
