@@ -4,8 +4,11 @@
 
 /var/www/secret
 /var/www/lib
+/var/www/lostpet.jp/lib/migrate
 /var/www/lostpet.jp/lib/Secret
 /var/www/lostpet.jp/lib/Config
+/var/www/lostpet.jp/lib/Encode
+/var/www/lostpet.jp/public_html/test.php
 /var/www/lostpet.jp/public_html/script.js
 /var/www/lostpet.jp/public_html/style.css
 /var/www/lostpet.jp/public_html/scripts
