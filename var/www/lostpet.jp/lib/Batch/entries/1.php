@@ -2,8 +2,13 @@
 
 declare(strict_types=1);
 
-(function () {
-  $id = 1;
 
-  Batch::update($id);
-})();
+class Batch1
+{
+  static public function dispatch(): void
+  {
+    require _DIR_ . "/lib/migrate/index.php";
+
+    MigrateCase::batch();
+  }
+}
