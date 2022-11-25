@@ -105,7 +105,7 @@ class SES
 
     if ($client === null) {
       if (!class_exists("Aws\Sdk")) {
-        require _DIR_ . "/lib/aws/vendor/autoload.php";
+        require _DIR_ . "/../lib/aws/vendor/autoload.php";
       }
 
       $client = new Aws\Ses\SesClient([
