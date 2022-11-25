@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
-if ("dev.lostpet.jp" === $_SERVER["SERVER_NAME"]) {
+define("_SERVER_", $_SERVER["SERVER_NAME"] ?? "lostpet.jp");
+
+if ("dev.lostpet.jp" === _SERVER_) {
   ini_set("opcache.enable", "0");
   header("x-robots-tag: noindex");
   header("cache-control: no-cache,no-store,must-revalidate,must-understand,private");
-} elseif ("localhost" === $_SERVER["SERVER_NAME"]) {
+} elseif ("localhost" === _SERVER_) {
   require __DIR__ . "/../lib/preload.php";
 }
 
@@ -33,21 +35,23 @@ register_shutdown_function(function () {
 
 define("_DOMAIN_", "lostpet.jp");
 define("_METHOD_", strtolower($_SERVER["REQUEST_METHOD"] ?? "GET"));
-define("_DIR_", realpath("../"));
 
 if (php_sapi_name() === "cli") {
+  define("_DIR_", "/var/www/lostpet.jp");
   define("_IP_", "cli");
   define("_PATH_", $argv[1] ?? "/");
   define("_STAGE_", 3);
   define("_REQUEST_", 1);
   define("_UA_", "cli");
 
-  Batch::run();
+  require __DIR__ . "/cli" . _PATH_ . ".php";
+
   exit;
 } else {
+  define("_DIR_", realpath("../"));
   define("_IP_", $_SERVER["HTTP_X_FORWARDED_FOR"] ?? ($_SERVER["REMOTE_ADDR"] ?? "unknown"));
   define("_PATH_", $_SERVER["SCRIPT_NAME"]);
-  define("_STAGE_", ("dev." . _DOMAIN_ === $_SERVER["SERVER_NAME"]) ? 2 : 1);
+  define("_STAGE_", ("dev." . _DOMAIN_ === _SERVER_) ? 2 : 1);
   define("_REQUEST_", "/api/" === substr(_PATH_, 0, 5) ? (0 === strpos(_PATH_, "/api/private/") ? 3 : 2) : 1);
   define("_UA_", $_SERVER["HTTP_USER_AGENT"] ?? "human");
 }
@@ -76,9 +80,16 @@ if (2 === _STAGE_) {
   }
 }
 
-if (3 === _REQUEST_ || (2 === _STAGE_ && _PATH_ === "/test")) {
+$is_test = (2 === _STAGE_ && _PATH_ === "/test");
+
+if (3 === _REQUEST_ || $is_test) {
   session_cache_limiter("");
   session_start();
+}
+
+if ($is_test) {
+  require __DIR__ . "/test.php";
+  exit;
 }
 
 Document::create(1 === _REQUEST_ ? new HTMLDocument : new JSONDocument);
