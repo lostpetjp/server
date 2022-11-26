@@ -6,12 +6,20 @@ class Batch
 {
   static public array $entries = [
     1 => [  // 案件のクローン
-      "span" => 0,
+      "span" => 300,
       "hours" => [],
     ],
     2 => [  // メディアファイルのクローン
       "span" => 0,
       "hours" => [],
+    ],
+    3 => [  // コメントのクローン
+      "span" => 0,
+      "hours" => [],
+    ],
+    4 => [  // `media-relation`のclean up
+      "span" => 43200,
+      "hours" => [4, 5,],
     ],
   ];
 
