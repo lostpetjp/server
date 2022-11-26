@@ -13,6 +13,7 @@ foreach ([
   "Etag",
   "Json2Node",
   "Log",
+  "Media",
   "MediaRelation",
   "Queue",
   "RDS",
