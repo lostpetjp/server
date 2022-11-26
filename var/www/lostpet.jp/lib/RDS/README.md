@@ -138,6 +138,7 @@ RDS::execute("UPDATE `hoge` SET `updated_at`=? WHERE `id`=?;", [
 {
   title: string // スレッドのタイトル
   author: string  // 投稿者名
+  owner: number // 0=ゲスト, 1=オーナー
 }
 ```
 
