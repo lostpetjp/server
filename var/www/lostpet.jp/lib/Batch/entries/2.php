@@ -7,7 +7,7 @@ class Batch2
 {
   static public function dispatch(): void
   {
-    require _DIR_ . "/lib/migrate/index.php";
+    require_once _DIR_ . "/lib/migrate/index.php";
 
     MigrateMedia::batch();
   }
