@@ -7,7 +7,7 @@ class Recaptcha
   static private function validate(string $code): bool
   {
     if ($code) {
-      $data = Secret::get("/google/credentials.json");
+      $data = Secret::get("/recaptcha/credentials.json");
 
       $curl = curl_init();
       curl_setopt($curl, CURLOPT_URL, "https://www.google.com/recaptcha/api/siteverify?secret=" . $data["secret"] . "&response=" . $code);
@@ -27,8 +27,10 @@ class Recaptcha
     return false;
   }
 
-  static public function check(?string $code): null|bool
+  static public function check(): null|bool
   {
+    $code = $_POST["recaptcha"] ?? null;
+
     if (PHP_SESSION_NONE === session_status()) {
       session_start();
     }
