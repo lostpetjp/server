@@ -51,9 +51,14 @@ class HTMLDocument
       "min480" => "",
       "min768" => "",
       "min1024" => "",
+      "max359" => "",
+      "max479" => "",
+      "max767" => "",
+      "max1023" => "",
       "hover" => "",
       "light" => "",
       "dark" => "",
+      "motion" => "",
     ];
 
     $all_css_text = "";
@@ -72,11 +77,16 @@ class HTMLDocument
         "@media screen and (min-width:480px){",
         "@media screen and (min-width:768px){",
         "@media screen and (min-width:1024px){",
+        "@media screen and (max-width:359px){",
+        "@media screen and (max-width:479px){",
+        "@media screen and (max-width:767px){",
+        "@media screen and (max-width:1023px){",
         "@media (hover:hover) and (prefers-color-scheme:light){",
         "@media (hover:hover) and (prefers-color-scheme:dark){",
         "@media (prefers-color-scheme:light){",
         "@media (prefers-color-scheme:dark){",
         "@media (hover:hover){",
+        "@media (prefers-reduced-motion:no-preference){",
       ] as $prefix) {
         $position = strpos($css_text, $prefix);
         if (false !== $position) $block_positions[] = $position;
@@ -117,6 +127,9 @@ class HTMLDocument
               $type = "hover";
               $start = 21;
             }
+          } elseif ("r" === $char[16]) {
+            $type = "motion";
+            $start = 46;
           } elseif ("p" === $char8) {
             if ("l" === $char[29]) {
               $type = "light";
@@ -126,16 +139,17 @@ class HTMLDocument
               $start = 35;
             }
           } else {
+            $is_max = "a" === $char[20];
             $size = (int)substr($char, -6);
-            $type = "min{$size}";
-            $start = 1024 === $size ? 37 : 36;
+            $type = ($is_max ? "max" : "min") . "{$size}";
+            $start = (1023 === $size || 1024 === $size) ? 37 : 36;
           }
         } else {
           $type = "global";
           $start = 0;
         }
 
-        $style_map["hover" === substr($type, 0, 5) ? "hover" : (in_array($type, ["light", "dark",], true) ? "global" : $type)] .= ($css_text = ($start ? substr($css_text, $start, -1) : $css_text));
+        $style_map["hover" === substr($type, 0, 5) ? "hover" : (in_array($type, ["light", "motion", "dark",], true) ? "global" : $type)] .= ($css_text = ($start ? substr($css_text, $start, -1) : $css_text));
 
         $default_css[] = [
           "id" => $id,
@@ -152,12 +166,17 @@ class HTMLDocument
       "min480",
       "min768",
       "min1024",
+      "max359",
+      "max479",
+      "max767",
+      "max1023",
       "hover",
       "light",
       "dark",
+      "motion",
     ] as $key) {
       if ($style_map[$key]) {
-        $prefix = "hover" === $key ? "@media (hover:hover){" : ("global" === $key ? "" : "@media screen and (min-width:" . substr($key, 3) . "px){");
+        $prefix = "hover" === $key ? "@media (hover:hover){" : ("global" === $key ? "" : "@media screen and (" . ("a" === $key[1] ? "max" : "min") . "-width:" . substr($key, 3) . "px){");
         $all_css_text .= $prefix . $style_map[$key] . ($prefix ? "}" : "");
       }
     }
@@ -203,7 +222,7 @@ class HTMLDocument
       .       $all_css_text
       .     '</style>'
       .     '<script>'
-      .       '(function(){var t=localStorage.getItem("t");("2"===t||"1"!==t&&matchMedia("(prefers-color-scheme:dark)").matches)&&document.documentElement.classList.replace("t1","t2")}());'
+      .       '(function(){var t;("2"===(t=localStorage.getItem("t"))||"1"!==t&&matchMedia("(prefers-color-scheme:dark)").matches)&&document.documentElement.classList.replace("t1","t2"),("2"===(t=localStorage.getItem("r"))||"1"!==t&&matchMedia("(prefers-reduced-motion)").matches)&&document.documentElement.classList.add("r2")}());'
       .       'self.a=' . json_encode([
         "css" => array_map(fn (array $entry) => [
           "id" => $entry["id"],
@@ -228,7 +247,7 @@ class HTMLDocument
       .            '<img class="d1a1" src="/icon.svg">'
       .         '</picture>'
       .       '</a>'
-      .       '<a class="a2 d1b ht1" href="/">サイトに掲載</a>'
+      .       '<a class="a3 d1b ht1" href="/">サイトに掲載</a>'
       .     '</header>'
       .     '<div class="d2">'
       .       Json2Node::create($this->client->body)  // <main class="d2a"> ... </main>
@@ -238,29 +257,30 @@ class HTMLDocument
       .           '<div class="d2b1b">'
       .             '<h5 class="d2b1b1">検索</h5>'
       .             '<ul class="d2b1b2">'
-      .               '<li><a class="a2 d2b1b2a hb1" href="/search/lost/">迷子</a></li>'
-      .               '<li><a class="a2 d2b1b2a hb1" href="/search/find/">保護</a></li>'
+      .               '<li><a class="a2 d2b1b2a hb2" href="/search/lost/">迷子</a></li>'
+      .               '<li><a class="a2 d2b1b2a hb2" href="/search/find/">保護</a></li>'
       .             '</ul>'
       .           '</div>'
       .           '<div class="d2b1b d2b1c">'
       .             '<h5 class="d2b1b1">お役立ち</h5>'
       .             '<ul class="d2b1b2">'
-      .               '<li><a class="a2 d2b1b2a hb1" href="/register">サイトに掲載する</a></li>'
-      .               '<li><a class="a2 d2b1b2a hb1" href="/poster">ポスターを作成する</a></li>'
+      .               '<li><a class="a2 d2b1b2a hb2" href="/register">サイトに掲載する</a></li>'
+      .               '<li><a class="a2 d2b1b2a hb2" href="/poster">ポスターを作成する</a></li>'
       .             '</ul>'
       .           '</div>'
       .           '<div class="d2b1b d2b1c">'
       .             '<h5 class="d2b1b1">サイト案内</h5>'
       .             '<ul class="d2b1b2">'
-      .               '<li><a class="a2 d2b1b2a hb1" href="/terms">利用規約</a></li>'
-      .               '<li><a class="a2 d2b1b2a hb1" href="/privacy">プライバシーポリシー</a></li>'
-      .               '<li><a class="a2 d2b1b2a hb1" href="/contact">問い合わせ</a></li>'
+      .               '<li><a class="a2 d2b1b2a hb2" href="/terms">利用規約</a></li>'
+      .               '<li><a class="a2 d2b1b2a hb2" href="/privacy">プライバシーポリシー</a></li>'
+      .               '<li><a class="a2 d2b1b2a hb2" href="/contact">問い合わせ</a></li>'
       .             '</ul>'
       .           '</div>'
       .           '<div class="d2b1b d2b1c">'
       .             '<h5 class="d2b1b1">アクセシビリティ</h5>'
       .             '<ul class="d2b1b2">'
-      .               '<li><a class="a2 d2b1b2a hb1" role="button">カラーモード</a></li>'
+      .               '<li><a class="a2 d2b1b2a d2b1b2b hb2" role="button">カラーモード<svg height="12" viewBox="0 0 24 24" width="12"><path d="M2.484 5.699 12 15.215l9.516-9.516a1.456 1.456 0 0 1 2.058 2.057L13.029 18.301a1.455 1.455 0 0 1-2.058 0L.426 7.756a1.455 1.455 0 0 1 2.058-2.057Z" fill="currentColor"/></svg></a></li>'
+      .               '<li><a class="a2 d2b1b2a d2b1b2b hb2" role="button">視差効果<svg height="12" viewBox="0 0 24 24" width="12"><path d="M2.484 5.699 12 15.215l9.516-9.516a1.456 1.456 0 0 1 2.058 2.057L13.029 18.301a1.455 1.455 0 0 1-2.058 0L.426 7.756a1.455 1.455 0 0 1 2.058-2.057Z" fill="currentColor"/></svg></a></li>'
       .             '</ul>'
       .           '</div>'
       .         '</div>'
