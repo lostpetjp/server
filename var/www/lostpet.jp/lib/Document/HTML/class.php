@@ -10,6 +10,10 @@ class HTMLDocument
   {
     $content = "";
 
+    if (2 === _STAGE_) {
+      require __DIR__ . "/admin.php";
+    }
+
     // /terms
     if ("/terms" === $pathname) {
       require __DIR__ . '/contents/terms/index.php';
