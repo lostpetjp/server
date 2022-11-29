@@ -11,7 +11,7 @@ class HTMLDocumentContactContent implements HTMLDocumentContentInterface
   static public string $search = "";
 
   static public array $css = [
-    4, 9, 15, 16,
+    4, 9, 15, 16, 22, 23, 24,
   ];
 
   static public array $js = [];
@@ -53,18 +53,24 @@ class HTMLDocumentContactContent implements HTMLDocumentContentInterface
               ],
               [
                 "attribute" => [
-                  "autocapitalize" => "none",
-                  "autocomplete" => "off",
-                  "class" => "c15i",
-                  "inputmode" => "text",
-                  "maxlength" => "50",
-                  "minlength" => "5",
-                  "name" => "title",
-                  "required" => true,
-                  "spellcheck" => "false",
-                  "type" => "text",
+                  "class" => "c24w",
                 ],
-                "tagName" => "input",
+                "children" => [
+                  "attribute" => [
+                    "autocapitalize" => "none",
+                    "autocomplete" => "off",
+                    "class" => "c15i",
+                    "inputmode" => "text",
+                    "maxlength" => "50",
+                    "minlength" => "5",
+                    "name" => "title",
+                    "required" => true,
+                    "spellcheck" => "false",
+                    "type" => "text",
+                  ],
+                  "tagName" => "input",
+                ],
+                "tagName" => "div",
               ],
             ],
             "tagName" => "div",
@@ -80,18 +86,24 @@ class HTMLDocumentContactContent implements HTMLDocumentContentInterface
               ],
               [
                 "attribute" => [
-                  "autocapitalize" => "none",
-                  "autocomplete" => "off",
-                  "class" => "c15i",
-                  "inputmode" => "email",
-                  "maxlength" => "50",
-                  "minlength" => "5",
-                  "name" => "email",
-                  "required" => true,
-                  "spellcheck" => "false",
-                  "type" => "text",
+                  "class" => "c24w",
                 ],
-                "tagName" => "input",
+                "children" => [
+                  "attribute" => [
+                    "autocapitalize" => "none",
+                    "autocomplete" => "off",
+                    "class" => "c15i",
+                    "inputmode" => "email",
+                    "maxlength" => "50",
+                    "minlength" => "5",
+                    "name" => "email",
+                    "required" => true,
+                    "spellcheck" => "false",
+                    "type" => "email",
+                  ],
+                  "tagName" => "input",
+                ],
+                "tagName" => "div",
               ],
             ],
             "tagName" => "div",
@@ -107,18 +119,24 @@ class HTMLDocumentContactContent implements HTMLDocumentContentInterface
               ],
               [
                 "attribute" => [
-                  "autocapitalize" => "none",
-                  "autocomplete" => "off",
-                  "class" => "c15t",
-                  "class" => "c15t",
-                  "inputmode" => "text",
-                  "maxlength" => "2000",
-                  "minlength" => "5",
-                  "name" => "description",
-                  "required" => true,
-                  "spellcheck" => "false",
+                  "class" => "c24w",
                 ],
-                "tagName" => "textarea",
+                "children" => [
+                  "attribute" => [
+                    "autocapitalize" => "none",
+                    "autocomplete" => "off",
+                    "class" => "c15t",
+                    "class" => "c15t",
+                    "inputmode" => "text",
+                    "maxlength" => "2000",
+                    "minlength" => "5",
+                    "name" => "description",
+                    "required" => true,
+                    "spellcheck" => "false",
+                  ],
+                  "tagName" => "textarea",
+                ],
+                "tagName" => "div",
               ],
             ],
             "tagName" => "div",
@@ -138,6 +156,7 @@ class HTMLDocumentContactContent implements HTMLDocumentContentInterface
             "children" => [
               "attribute" => [
                 "class" => "a3 c4 ht1",
+                "disabled" => true,
               ],
               "children" => "送信",
               "tagName" => "button",
