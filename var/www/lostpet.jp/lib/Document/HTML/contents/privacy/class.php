@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 require __DIR__ . "/../../templates/doc/index.php";
 
 class HTMLDocumentPrivacyContent implements HTMLDocumentContentInterface
