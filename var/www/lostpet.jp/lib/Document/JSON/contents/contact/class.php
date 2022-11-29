@@ -8,7 +8,9 @@ class JSONDocumentContact
 
   static public function create()
   {
-    Recaptcha::check();
+    if (!Recaptcha::check()) {
+      Document::error(400);
+    }
 
     $title = $_POST["title"] ?? null;
     $email_decode = $_POST["email"] ?? null;
