@@ -21,9 +21,10 @@ class JSONDocument
       $_POST = json_decode(file_get_contents("php://input"), true);
     }
 
+    $content = null;
+
     // public
     if (2 === _REQUEST_) {
-      // 文書の取得
       if ("/api/public/document" === _PATH_) {
         require __DIR__ . "/contents/document/index.php";
         $content = JSONDocumentDocument::class;
@@ -34,12 +35,20 @@ class JSONDocument
 
       // private
     } elseif (3 === _REQUEST_) {
-      // Recaptchaの確認
-      if ("/api/private/recaptcha" === _PATH_) {
-        require __DIR__ . "/contents/recaptcha/index.php";
-        $content = JSONDocumentRecaptcha::class;
+      if ("post" === _METHOD_) {
+        if ("/api/private/contact" === _PATH_) {
+          require __DIR__ . "/contents/contact/index.php";
+          $content = JSONDocumentContact::class;
+        }
+      } else {
+        if ("/api/private/recaptcha" === _PATH_) {
+          require __DIR__ . "/contents/recaptcha/index.php";
+          $content = JSONDocumentRecaptcha::class;
+        }
       }
     }
+
+    if (!$content) Document::error(404);
 
     $this->client = new JSONDocumentClient($content);
     $this->echo();
