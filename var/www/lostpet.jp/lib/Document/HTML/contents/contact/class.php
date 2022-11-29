@@ -11,7 +11,7 @@ class HTMLDocumentContactContent implements HTMLDocumentContentInterface
   static public string $search = "";
 
   static public array $css = [
-    9, 15, 16,
+    4, 9, 15, 16,
   ];
 
   static public array $js = [];
@@ -133,11 +133,11 @@ class HTMLDocumentContactContent implements HTMLDocumentContentInterface
           // button
           [
             "attribute" => [
-              "class" => "c15g",
+              "class" => "c4w",
             ],
             "children" => [
               "attribute" => [
-                "class" => "c15b ht1",
+                "class" => "a3 c4 ht1",
               ],
               "children" => "送信",
               "tagName" => "button",
