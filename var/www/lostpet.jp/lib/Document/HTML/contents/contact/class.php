@@ -11,7 +11,7 @@ class HTMLDocumentContactContent implements HTMLDocumentContentInterface
   static public string $search = "";
 
   static public array $css = [
-    4, 9, 15, 16, 22, 23, 24,
+    4, 9, 15, 16, 22, 24,
   ];
 
   static public array $js = [];
