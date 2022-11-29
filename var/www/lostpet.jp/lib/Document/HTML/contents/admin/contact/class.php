@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 class HTMLDocumentAdminContactContent
 {
   static public function create(int $id)
@@ -14,10 +17,21 @@ class HTMLDocumentAdminContactContent
     $data["ip"] = $ip . ' (' . gethostbyaddr($ip) . ')';
     $data["ua"] = Encode::decode("/ua/salt.txt", $data["ua"]);
 
+    echo '<!DOCTYPE html>'
+      . '<html>'
+      . '<head>'
+      .   '<title>問い合わせの管理</title>'
+      . '</head>'
+      . '<body>'
+      . '<h1>問い合わせの管理</h1>';
+
     foreach ($data as $key => $value) {
       echo "<h2>{$key}</h2>";
       echo "<pre><code>{$value}</code></pre>";
     }
+
+    echo '</body>'
+      . '</html>';
 
     exit;
   }
