@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 class CaseCount
 {
   static public function get(int $matter_id, int $animal_id, int $prefecture_id): int
