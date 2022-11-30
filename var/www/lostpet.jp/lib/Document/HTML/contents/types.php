@@ -1,7 +1,5 @@
 <?php
 interface HTMLDocumentContentInterface
 {
-  static public function ready(): void;
-
-  static public function create(): array;
+  static public function create(string $pathname): array;
 }
