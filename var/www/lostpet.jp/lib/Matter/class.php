@@ -8,25 +8,25 @@ class Matter
     1 => [
       "id" => 1,
       "name" => "lost",
-      "search" => 1,
+      "search" => true,
       "title" => "迷子",
     ],
     2 => [
       "id" => 2,
       "name" => "find",
-      "search" => 1,
+      "search" => true,
       "title" => "保護",
     ],
     3 => [
       "id" => 3,
       "name" => "witness",
-      "search" => 0,
+      "search" => false,
       "title" => "目撃",
     ],
     4 => [
       "id" => 4,
       "name" => "rainbow",
-      "search" => 0,
+      "search" => false,
       "title" => "虹の橋",
     ],
   ];
