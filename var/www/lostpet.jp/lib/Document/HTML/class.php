@@ -57,8 +57,10 @@ class HTMLDocument
       "global" => "",
       "min360" => "",
       "min480" => "",
+      "min600" => "",
       "min768" => "",
       "min1024" => "",
+      "min1280" => "",
       "max359" => "",
       "max479" => "",
       "max767" => "",
@@ -83,8 +85,10 @@ class HTMLDocument
       foreach ([
         "@media screen and (min-width:360px){",
         "@media screen and (min-width:480px){",
+        "@media screen and (min-width:600px){",
         "@media screen and (min-width:768px){",
         "@media screen and (min-width:1024px){",
+        "@media screen and (min-width:1280px){",
         "@media screen and (max-width:359px){",
         "@media screen and (max-width:479px){",
         "@media screen and (max-width:767px){",
@@ -150,7 +154,7 @@ class HTMLDocument
             $is_max = "a" === $char[20];
             $size = (int)substr($char, -6);
             $type = ($is_max ? "max" : "min") . "{$size}";
-            $start = (1023 === $size || 1024 === $size) ? 37 : 36;
+            $start = (1023 === $size || 1280 === $size || 1024 === $size) ? 37 : 36;
           }
         } else {
           $type = "global";
@@ -172,8 +176,10 @@ class HTMLDocument
       "global",
       "min360",
       "min480",
+      "min600",
       "min768",
       "min1024",
+      "min1280",
       "max359",
       "max479",
       "max767",
