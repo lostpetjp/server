@@ -6,11 +6,40 @@ class CaseCount
 {
   static public function get(int $matter_id, int $animal_id, int $prefecture_id): int
   {
-    $count = RDS::fetchColumn("SELECT `count` FROM `case-count` WHERE `matter`=? AND `animal`=? AND `prefecture`=? LIMIT 1;", [
-      $matter_id, $animal_id, $prefecture_id,
+    $values = [];
+    $wheres = [];
+
+    // for matter
+    if (2 === $matter_id) {
+      $wheres[] = "(`matter`=? OR `matter`=? OR `matter`=?)";
+      $values = [...$values, 2, 3, 4,];
+    } else {
+      $wheres[] = "`matter`=?";
+      $values[] = $matter_id;
+    }
+
+    // for animal
+    if (99 === $animal_id) {
+      $wheres[] = "(`animal`=? OR `animal`=? OR `animal`=? OR `animal`=? OR `animal`=?)";
+      $values = [...$values, 5, 6, 7, 8, 99,];
+    } else {
+      $wheres[] = "`animal`=?";
+      $values[] = $animal_id;
+    }
+
+    // for prefecture
+    $wheres[] = "`prefecture`=?";
+    $values[] = $prefecture_id;
+
+    $count = RDS::fetchColumn("SELECT SUM(`count`) FROM `case-count` WHERE " . implode(" AND ", $wheres) . " LIMIT 1;", [
+      ...$values,
     ]);
 
-    return $count ? $count : 0;
+    return $count ? (int)$count : 0;
+  }
+
+  static public function getAll()
+  {
   }
 
   /**
