@@ -26,13 +26,17 @@ class HTMLDocument
     } elseif ("/contact" === $pathname) {
       require __DIR__ . '/contents/contact/index.php';
       $content = HTMLDocumentContactContent::class;
+      // search
+    } elseif (0 === strpos($pathname, "/search") || 0 === strpos($pathname, "/case")) {
+      require __DIR__ . '/contents/search/index.php';
+      $content = HTMLDocumentSearchContent::class;
       // fallback
     } else {
       require __DIR__ . '/contents/terms/index.php';
       $content = HTMLDocumentTermsContent::class;
     }
 
-    return new HTMLDocumentClient($content, $mode);
+    return new HTMLDocumentClient($content, $pathname, $mode);
   }
 
   public function create(): void
@@ -332,13 +336,15 @@ class HTMLDocumentClient
 
   public array $css = [];
 
-  public function __construct(string $content, int $mode)
+  public function __construct(string $content, string $pathname, int $mode)
   {
     $template = $content::$template;
 
     $template::$css = [
       ...$template::$css,
     ];
+
+    $this->body = $content::create($pathname);
 
     $this->cache_time = $content::$cache_time;
     $this->pathname = $content::$pathname;
@@ -467,10 +473,6 @@ class HTMLDocumentClient
       ...$template::$js,
       ...$content::$js,
     ])];
-
-    $content::ready();
-
-    $this->body = $content::create();
 
     if (1 === $mode) {
       $this->body = $template::create($this->body);
