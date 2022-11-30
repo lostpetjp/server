@@ -26,14 +26,14 @@ class CaseIndex
         $order = 1 === $sort_id ? "updated_at" : "starts_at";
 
         $wheres = array_filter([
-          $matter_id ? "`matter`=?" : null,
-          $animal_id ? "`animal`=?" : null,
+          $matter_id ? (2 === $matter_id ? "(`matter`=? OR `matter`=? OR `matter`=?)" : "`matter`=?") : null,
+          $animal_id ? (99 === $animal_id ? "(`animal`=? OR `animal`=? OR `animal`=? OR `animal`=? OR `animal`=?)" : "`animal`=?") : null,
           $prefecture_id ? "`prefecture`=?" : null,
         ], fn (?string $sql) => $sql);
 
         $values = array_filter([
-          $matter_id ? $matter_id : null,
-          $animal_id ? $animal_id : null,
+          ...($matter_id ? (2 === $matter_id ? [2, 3, 4] : [$matter_id,]) : []),
+          ...($animal_id ? (99 === $animal_id ? [5, 6, 7, 8, 99,] : [$animal_id]) : []),
           $prefecture_id ? $prefecture_id : null,
         ], fn (?string $sql) => $sql);
 
