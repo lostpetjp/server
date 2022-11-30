@@ -2,6 +2,15 @@
 
 class CaseCount
 {
+  static public function get(int $matter_id, int $animal_id, int $prefecture_id): int
+  {
+    $count = RDS::fetchColumn("SELECT `count` FROM `case-count` WHERE `matter`=? AND `animal`=? AND `prefecture`=? LIMIT 1;", [
+      $matter_id, $animal_id, $prefecture_id,
+    ]);
+
+    return $count ? $count : 0;
+  }
+
   /**
    * 案件数の正確な同期
    * 負荷がかかる処理なので時間を置くこと
