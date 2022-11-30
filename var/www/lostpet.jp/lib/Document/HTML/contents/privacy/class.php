@@ -32,16 +32,12 @@ class HTMLDocumentPrivacyContent implements HTMLDocumentContentInterface
     ],
   ];
 
-  static public function ready(): void
+  static public function create(string $pathname): array
   {
     if (1 === _STAGE_) {
       self::$cache_time = 600;
       Etag::generate(_PATH_, max(filemtime(__FILE__), $_SERVER["REQUEST_TIME"] - 3600));
     }
-  }
-
-  static public function create(): array
-  {
 
     return [
       "title" => "プライバシーポリシー",
