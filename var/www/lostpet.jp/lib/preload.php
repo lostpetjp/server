@@ -9,6 +9,8 @@ foreach ([
   "Batch",
   "Cases",
   "CaseCount",
+  "CaseIndex",
+  "CaseVersion",
   "Discord",
   "Document",
   "Encode",
