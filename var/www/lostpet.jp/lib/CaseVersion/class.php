@@ -6,11 +6,37 @@ class CaseVersion
 {
   static public function get(int $matter_id, int $animal_id, int $prefecture_id, int $sort_id): int
   {
-    $version = RDS::fetchColumn("SELECT `version` FROM `case-version` WHERE `matter`=? AND `animal`=? AND `prefecture`=? AND `sort`=? LIMIT 1;", [
-      $matter_id,
-      $animal_id,
-      $prefecture_id,
-      $sort_id,
+    $values = [];
+    $wheres = [];
+
+    // for matter
+    if (2 === $matter_id) {
+      $wheres[] = "(`matter`=? OR `matter`=? OR `matter`=?)";
+      $values = [...$values, 2, 3, 4,];
+    } else {
+      $wheres[] = "`matter`=?";
+      $values[] = $matter_id;
+    }
+
+    // for animal
+    if (99 === $animal_id) {
+      $wheres[] = "(`animal`=? OR `animal`=? OR `animal`=? OR `animal`=? OR `animal`=?)";
+      $values = [...$values, 5, 6, 7, 8, 99,];
+    } else {
+      $wheres[] = "`animal`=?";
+      $values[] = $animal_id;
+    }
+
+    // for prefecture
+    $wheres[] = "`prefecture`=?";
+    $values[] = $prefecture_id;
+
+    // for sort
+    $wheres[] = "`sort`=?";
+    $values[] = $sort_id;
+
+    $version = RDS::fetchColumn("SELECT MAX(`version`) FROM `case-version` WHERE " . implode(" AND ", $wheres) . " LIMIT 1;", [
+      ...$values,
     ]);
 
     return $version ? $version : 0;
