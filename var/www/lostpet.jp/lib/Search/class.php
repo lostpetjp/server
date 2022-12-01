@@ -64,9 +64,9 @@ class Search
     $sort_id = $object["sort"];
     $page_id = $object["page"];
 
-    $matter = $matter_id ? array_filter(Matter::$data, fn (array $entry) => $entry["search"])[$matter_id] ?? Matter::$data[99] : null;
-    $animal = $animal_id ? array_filter(Animal::$data, fn (array $entry) => $entry["search"])[$animal_id] ?? Animal::$data[99] : null;
-    $prefecture = $prefecture_id ? array_filter(Prefecture::$data, fn (array $entry) => $entry["search"])[$prefecture_id] ?? Prefecture::$data[99] : null;
+    $matter = $matter_id ? array_filter(Matter::$data, fn (array $entry) => $entry["search"])[$matter_id] ?? null : null;
+    $animal = $animal_id ? array_filter(Animal::$data, fn (array $entry) => $entry["search"])[$animal_id] ?? null : null;
+    $prefecture = $prefecture_id ? array_filter(Prefecture::$data, fn (array $entry) => $entry["search"])[$prefecture_id] ?? null : null;
 
     return "/search/" . implode("/", array_filter([
       $matter ? $matter["name"] : null,
