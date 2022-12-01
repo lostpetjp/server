@@ -41,7 +41,7 @@ class CaseIndex
           ...$values,
         ]);
 
-        array_multisort(array_column($rows, $order), SORT_DESC, $rows);
+        array_multisort(array_column($rows, $order), SORT_DESC, array_column($rows, "id"), SORT_DESC, $rows);
 
         $values = [];
         $page = 0;
