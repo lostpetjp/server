@@ -88,7 +88,13 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                             "role" => "button",
                           ],
                           "children" => [
-                            !$matter ? "全状況" : $matter["title"],
+                            [
+                              "attribute" => [
+                                "class" => "c25a1a1" . ($matter ? " c25a1a1s" : ""),
+                              ],
+                              "children" => !$matter ? "全状況" : $matter["title"],
+                              "tagName" => "span",
+                            ],
                             [
                               "attribute" => [
                                 "height" => "12",
@@ -116,7 +122,13 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                             "role" => "button",
                           ],
                           "children" => [
-                            !$animal ? "全動物" : $animal["title"],
+                            [
+                              "attribute" => [
+                                "class" => "c25a1a1" . ($animal ? " c25a1a1s" : ""),
+                              ],
+                              "children" => !$animal ? "全動物" : $animal["title"],
+                              "tagName" => "span",
+                            ],
                             [
                               "attribute" => [
                                 "height" => "12",
@@ -144,7 +156,13 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                             "role" => "button",
                           ],
                           "children" => [
-                            !$prefecture ? "全国" : $prefecture["title"],
+                            [
+                              "attribute" => [
+                                "class" => "c25a1a1" . ($prefecture ? " c25a1a1s" : ""),
+                              ],
+                              "children" => !$prefecture ? "全国" : $prefecture["title"],
+                              "tagName" => "span",
+                            ],
                             [
                               "attribute" => [
                                 "height" => "12",
@@ -176,13 +194,13 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                       [
                         "attribute" => [
                           "class" => "c25b1",
-                          "href" => Search::createUrl([
-                            "sort" => 0,
-                          ] + $object),
                         ],
                         "children" => [
                           "attribute" => [
                             "class" => "a2 c25b1a c25b1b hb3" . (1 !== $sort_id ? " c25b1s" : ""),
+                            "href" => Search::createUrl([
+                              "sort" => 0,
+                            ] + $object),
                           ],
                           "children" => "発生順",
                           "tagName" => "a",
@@ -192,13 +210,13 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                       [
                         "attribute" => [
                           "class" => "c25b1",
-                          "href" => Search::createUrl([
-                            "sort" => 1,
-                          ] + $object),
                         ],
                         "children" => [
                           "attribute" => [
                             "class" => "a2 c25b1a c25b1c hb3" . (1 === $sort_id ? " c25b1s" : ""),
+                            "href" => Search::createUrl([
+                              "sort" => 1,
+                            ] + $object),
                           ],
                           "children" => "新着順",
                           "tagName" => "a",
@@ -265,9 +283,9 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                         [
                           "attribute" => [
                             "class" => "c25e1a1",
-                            "title" => $counts[0] . "件",
+                            "title" => number_format($counts[0]) . "件",
                           ],
-                          "children" => $counts[0],
+                          "children" => number_format($counts[0]),
                           "tagName" => "span",
                         ],
                       ],
@@ -288,9 +306,9 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                         [
                           "attribute" => [
                             "class" => "c25e1a1",
-                            "title" => $counts[1] . "件",
+                            "title" => number_format($counts[1]) . "件",
                           ],
-                          "children" => $counts[1],
+                          "children" => number_format($counts[1]),
                           "tagName" => "span",
                         ],
                       ],
@@ -311,9 +329,9 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                         [
                           "attribute" => [
                             "class" => "c25e1a1",
-                            "title" => $counts[2] . "件",
+                            "title" => number_format($counts[2]) . "件",
                           ],
-                          "children" => $counts[2],
+                          "children" => number_format($counts[2]),
                           "tagName" => "span",
                         ],
                       ],
@@ -333,7 +351,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                     "attribute" => [
                       "class" => "c25d1",
                     ],
-                    "children" => $counts[$matter_id],
+                    "children" => number_format($counts[$matter_id]),
                     "tagName" => "span",
                   ],
                   "件ヒットしました。",
@@ -355,7 +373,9 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
             ],
             "tagName" => "header",
           ],
-          self::createPager($page_id,  $total_pages),
+          self::createPager($page_id,  $total_pages, fn (int $page) => Search::createUrl([
+            "page" => $page,
+          ] + $object)),
           [
             "attribute" => [
               "class" => "c25f c26",
@@ -363,7 +383,9 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
             "children" => array_map(fn (array $item) => self::createItem($item, $media_map), $object["items"]),
             "tagName" => "div",
           ],
-          self::createPager($page_id,  $total_pages),
+          self::createPager($page_id,  $total_pages, fn (int $page) => Search::createUrl([
+            "page" => $page,
+          ] + $object)),
           (string)count($object["items"]),
           // $object["body"],
         ],
@@ -501,7 +523,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
     ];
   }
 
-  static private function createPager(int $page_id, int $total_pages): array
+  static private function createPager(int $page_id, int $total_pages, callable $create_url): array
   {
     /*
     <ul class="pager top">
@@ -519,7 +541,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
           "children" => [
             "attribute" => [
               "class" => "a2 hb2 c27a" . (!($page_id > 1) ? " c27d" : ""),
-              "href" => $page_id > 1 ? ("./" . ($page_id - 1)) : null,
+              "href" => $page_id > 1 ? $create_url($page_id - 1) : null,
             ],
             "children" => [
               [
@@ -575,7 +597,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
           "children" => [
             "attribute" => [
               "class" => "a2 hb2 c27a" . (!($total_pages > $page_id) ? " c27d" : ""),
-              "href" => $total_pages > $page_id ? ("./" . ($page_id + 1)) : null,
+              "href" => $total_pages > $page_id ? $create_url($page_id + 1) : null,
             ],
             "children" => [
               "次ページ",
