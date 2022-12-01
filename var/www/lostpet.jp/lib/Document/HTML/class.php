@@ -60,11 +60,14 @@ class HTMLDocument
       "min600" => "",
       "min768" => "",
       "min1024" => "",
+      "min1120" => "",
       "min1280" => "",
       "max359" => "",
       "max479" => "",
       "max767" => "",
       "max1023" => "",
+      "max1119" => "",
+      "max1279" => "",
       "hover" => "",
       "light" => "",
       "dark" => "",
@@ -88,11 +91,14 @@ class HTMLDocument
         "@media screen and (min-width:600px){",
         "@media screen and (min-width:768px){",
         "@media screen and (min-width:1024px){",
+        "@media screen and (min-width:1120px){",
         "@media screen and (min-width:1280px){",
         "@media screen and (max-width:359px){",
         "@media screen and (max-width:479px){",
         "@media screen and (max-width:767px){",
         "@media screen and (max-width:1023px){",
+        "@media screen and (max-width:1119px){",
+        "@media screen and (max-width:1279px){",
         "@media (hover:hover) and (prefers-color-scheme:light){",
         "@media (hover:hover) and (prefers-color-scheme:dark){",
         "@media (prefers-color-scheme:light){",
@@ -154,7 +160,7 @@ class HTMLDocument
             $is_max = "a" === $char[20];
             $size = (int)substr($char, -6);
             $type = ($is_max ? "max" : "min") . "{$size}";
-            $start = (1023 === $size || 1280 === $size || 1024 === $size) ? 37 : 36;
+            $start = (1023 === $size || 1119 === $size || 1120 === $size || 1279 === $size || 1280 === $size || 1024 === $size) ? 37 : 36;
           }
         } else {
           $type = "global";
@@ -179,11 +185,14 @@ class HTMLDocument
       "min600",
       "min768",
       "min1024",
+      "min1120",
       "min1280",
       "max359",
       "max479",
       "max767",
       "max1023",
+      "max1119",
+      "max1279",
       "hover",
       "light",
       "dark",
