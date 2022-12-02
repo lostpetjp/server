@@ -14,20 +14,25 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
 
   static public array $js = [];
 
-  static public function create(array $object): array
+  static public function create(HTMLDocumentClient $client): array
   {
-    $matter_id = $object["matter"];
-    $animal_id = $object["animal"];
-    $prefecture_id = $object["prefecture"];
-    $sort_id = $object["sort"];
-    $page_id = $object["page"];
+    $pathname = $client->pathname;
+    $object = $client->body;
+
+    $info = Search::parseUrl($pathname);
+    $matter_id = $info["matter"];
+    $animal_id = $info["animal"];
+    $prefecture_id = $info["prefecture"];
+    $sort_id = $info["sort"];
+    $page_id = $info["page"];
+
     $items = $object["items"];
     $counts = $object["count"];
     $total_pages = $object["total_pages"];
 
-    $matter = $matter_id ? array_filter(Matter::$data, fn (array $entry) => $entry["search"])[$matter_id] ?? Matter::$data[99] : null;
-    $animal = $animal_id ? array_filter(Animal::$data, fn (array $entry) => $entry["search"])[$animal_id] ?? Animal::$data[99] : null;
-    $prefecture = $prefecture_id ? array_filter(Prefecture::$data, fn (array $entry) => $entry["search"])[$prefecture_id] ?? Prefecture::$data[99] : null;
+    $matter = $matter_id ? array_filter(Matter::$data, fn (array $entry) => $entry["search"])[$matter_id] ?? null : null;
+    $animal = $animal_id ? array_filter(Animal::$data, fn (array $entry) => $entry["search"])[$animal_id] ?? null : null;
+    $prefecture = $prefecture_id ? array_filter(Prefecture::$data, fn (array $entry) => $entry["search"])[$prefecture_id] ?? null : null;
 
     $media_ids = [];
 
@@ -200,7 +205,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                             "class" => "a2 c25b1a c25b1b hb3" . (1 !== $sort_id ? " c25b1s" : ""),
                             "href" => Search::createUrl([
                               "sort" => 0,
-                            ] + $object),
+                            ] + $info),
                           ],
                           "children" => "発生順",
                           "tagName" => "a",
@@ -216,7 +221,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                             "class" => "a2 c25b1a c25b1c hb3" . (1 === $sort_id ? " c25b1s" : ""),
                             "href" => Search::createUrl([
                               "sort" => 1,
-                            ] + $object),
+                            ] + $info),
                           ],
                           "children" => "新着順",
                           "tagName" => "a",
@@ -238,7 +243,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                           "animal" => 0,
                           "prefecture" => 0,
                           "page" => 1,
-                        ] + $object),
+                        ] + $info),
                       ],
                       "children" => [
                         [
@@ -276,7 +281,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                         "class" => "a2 c25e1a hb2" . (0 === $matter_id ? " c25e1s" : "") . (!$counts[0] ? " c25e1d" : ""),
                         "href" => Search::createUrl([
                           "matter" => 0,
-                        ] + $object),
+                        ] + $info),
                       ],
                       "children" => [
                         "すべて",
@@ -299,7 +304,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                         "class" => "a2 c25e1a hb2" . (1 === $matter_id ? " c25e1s" : "") . (!$counts[1] ? " c25e1d" : ""),
                         "href" => Search::createUrl([
                           "matter" => 1,
-                        ] + $object),
+                        ] + $info),
                       ],
                       "children" => [
                         "迷子",
@@ -322,7 +327,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                         "class" => "a2 c25e1a hb2" . (2 === $matter_id ? " c25e1s" : "") . (!$counts[2] ? " c25e1d" : ""),
                         "href" => Search::createUrl([
                           "matter" => 2,
-                        ] + $object),
+                        ] + $info),
                       ],
                       "children" => [
                         "保護、目撃",
@@ -356,16 +361,19 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                   ],
                   "件ヒットしました。",
                   $matter_id || $animal_id || $prefecture_id ? [
-                    "(",
-                    [
-                      "attribute" => [
-                        "class" => "a1",
-                        "href" => "/search/",
+                    "children" => [
+                      "(",
+                      [
+                        "attribute" => [
+                          "class" => "a1",
+                          "href" => "/search/",
+                        ],
+                        "children" => "全部見る",
+                        "tagName" => "a",
                       ],
-                      "children" => "全部見る",
-                      "tagName" => "a",
+                      ")",
                     ],
-                    ")"
+                    "tagName" => "span",
                   ] : null,
                 ],
                 "tagName" => "div",
@@ -375,7 +383,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
           ],
           self::createPager($page_id,  $total_pages, fn (int $page) => Search::createUrl([
             "page" => $page,
-          ] + $object)),
+          ] + $info)),
           [
             "attribute" => [
               "class" => "c25f c26",
@@ -385,7 +393,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
           ],
           self::createPager($page_id,  $total_pages, fn (int $page) => Search::createUrl([
             "page" => $page,
-          ] + $object)),
+          ] + $info)),
           (string)count($object["items"]),
           // $object["body"],
         ],
