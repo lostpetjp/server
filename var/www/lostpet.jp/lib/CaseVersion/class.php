@@ -48,13 +48,27 @@ class CaseVersion
    * 1: 新着順
    * *: 発生順を更新した場合、必ず新着順も更新される
    */
-  static public function update(int $matter_id, int $animal_id, int $prefecture_id, int $sort_id): int
+  static public function update(int|array $matter_ids, int|array $animal_ids, int|array $prefecture_ids, int|array $sort_ids): int
   {
-    RDS::execute("INSERT INTO `case-version` (`matter`, `animal`, `prefecture`, `sort`, `version`) VALUES (?, ?, ?, ?, ?)" . (!$sort_id ? ",(?, ?, ?, ?, ?)" : "") . " ON DUPLICATE KEY UPDATE `version`=VALUES(`version`);", [
-      $matter_id, $animal_id, $prefecture_id, $sort_id, $_SERVER["REQUEST_TIME"],
-      ...(!$sort_id ? [
-        $matter_id, $animal_id, $prefecture_id, 1, $_SERVER["REQUEST_TIME"],
-      ] : [])
+    $values = [];
+
+    if (!is_array($matter_ids)) $matter_ids = [$matter_ids];
+    if (!is_array($animal_ids)) $animal_ids = [$animal_ids];
+    if (!is_array($prefecture_ids)) $prefecture_ids = [$prefecture_ids];
+    if (!is_array($sort_ids)) $sort_ids = [$sort_ids];
+
+    foreach ([0, ...$matter_ids] as $m) {
+      foreach ([0, ...$animal_ids] as $a) {
+        foreach ([0, ...$prefecture_ids] as $p) {
+          foreach ($sort_ids as $s) {
+            $values = [...$values, $m, $a, $p, $s, $_SERVER["REQUEST_TIME"],];
+          }
+        }
+      }
+    }
+
+    RDS::execute("INSERT INTO `case-version` (`matter`, `animal`, `prefecture`, `sort`, `version`) VALUES " . implode(",", array_fill(0, count($values) / 5, "(?, ?, ?, ?, ?)")) . " ON DUPLICATE KEY UPDATE `version`=VALUES(`version`);", [
+      ...$values,
     ]);
 
     return $_SERVER["REQUEST_TIME"];
