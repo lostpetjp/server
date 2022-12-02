@@ -26,10 +26,8 @@ class HTMLDocumentContactContent implements HTMLDocumentContentInterface
 
   static public function create(string $pathname): array
   {
-    if (1 === _STAGE_) {
-      self::$cache_time = 600;
-      Etag::generate(_PATH_, max(filemtime(__FILE__), $_SERVER["REQUEST_TIME"] - 3600));
-    }
+    self::$cache_time = 1 === _STAGE_ ? 600 : 1;
+    Etag::generate(_PATH_,  max(filemtime(__FILE__), (int)strtotime(date("Y-m-d H:" . (1 === _STAGE_ ? "i" : "00") . ":00"))));
 
     return [
       "title" => "問い合わせ",
