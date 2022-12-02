@@ -490,7 +490,7 @@ class HTMLDocumentClient
     ])];
 
     if (1 === $mode) {
-      $this->body = $template::create($this->body);
+      $this->body = $template::create($this);
     }
   }
 }
