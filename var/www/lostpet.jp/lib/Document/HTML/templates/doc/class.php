@@ -10,8 +10,11 @@ class HTMLDocumentDocTemplate implements HTMLDocumentTemplateInterface
 
   static public array $js = [];
 
-  static public function create(array $object): array
+  static public function create(HTMLDocumentClient $client): array
   {
+    $pathname = $client->pathname;
+    $object = $client->body;
+
     return [
       "attribute" => [
         "class" => "d2a",
