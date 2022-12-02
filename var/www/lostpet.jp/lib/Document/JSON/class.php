@@ -92,5 +92,6 @@ class JSONDocumentClient
   public function __construct(string $content)
   {
     $this->body = $content::create();
+    $this->cache_time = $content::$cache_time;
   }
 }
