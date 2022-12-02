@@ -66,7 +66,7 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
     $version = CaseVersion::get($matter_id, $animal_id, $prefecture_id, $sort_id);
 
     if ($version) {
-      Etag::generate(_PATH_, max(filemtime(__FILE__), $version, $_SERVER["REQUEST_TIME"] - (1 === _STAGE_ ? 3600 : 10))); // 304
+      Etag::generate(_PATH_, max(filemtime(__FILE__), $version));
     } else {
       $version = CaseVersion::update($matter_id, $animal_id, $prefecture_id, $sort_id);
     }
@@ -117,7 +117,7 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
     ]) : [];
 
     if ($items) {
-      array_multisort(array_column($items, 1 === $sort_id ? "updated_at" : "starts_at"), SORT_DESC, $items);
+      array_multisort(array_column($items, 1 === $sort_id ? "updated_at" : "starts_at"), SORT_DESC, array_column($items, "id"), SORT_DESC, $items);
 
       $items = array_map(fn (array $row) => [
         "head" => json_decode($row["head"], true),
@@ -136,11 +136,6 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
 
     return [
       "count" => $counts,
-      "matter" => $matter_id,
-      "animal" => $animal_id,
-      "prefecture" => $prefecture_id,
-      "sort" => $sort_id,
-      "page" => $page_id,
       "items" => $items,
       "title" => "{$p}{$m}{$a} ({$count}件)",
       "total_pages" => $total_pages,
