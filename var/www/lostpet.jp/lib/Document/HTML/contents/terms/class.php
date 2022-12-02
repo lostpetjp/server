@@ -35,7 +35,7 @@ class HTMLDocumentTermsContent implements HTMLDocumentContentInterface
   static public function create(string $pathname): array
   {
     self::$cache_time = 1 === _STAGE_ ? 600 : 1;
-    Etag::generate(_PATH_,  max(filemtime(__FILE__), (int)strtotime(date("Y-m-d H:" . (1 === _STAGE_ ? "i" : "00") . ":00"))));
+    Etag::generate(_PATH_,  max(filemtime(__FILE__)));
 
     return [
       "title" => "利用規約",
