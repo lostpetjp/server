@@ -99,7 +99,7 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
       $a = Animal::$data[$animal_id]["title"];
     }
 
-    self::$title = "{$p}{$m}{$a} ({$count}件) - 迷子ペットのデータベース";
+    self::$title = "{$p}{$m}{$a} (" . number_format($count) . "件) - 迷子ペットのデータベース";
     self::$description = "{$p}{$m}{$a}は{$count}件、登録されています。些細な情報でも、知っている方は掲示板に提供をお願いします。";
 
     self::$head[] = [
@@ -122,6 +122,28 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
       $items = array_map(fn (array $row) => [
         "head" => json_decode($row["head"], true),
       ] + $row, $items);
+
+      $media_ids = [];
+
+      for ($i = 0; count($items) > $i; $i++) {
+        foreach ($items[$i]["head"]["photos"] ?? [] as $photo) $media_ids = [...$media_ids, ...$photo,];
+      }
+
+      $rows = RDS::fetchAll("SELECT `id`, `name` FROM `media` WHERE `id` IN (" . implode(",", array_fill(0, ($limit = count($media_ids)), "?")) . ") AND `status`=? LIMIT {$limit};", [
+        ...$media_ids,
+        1,
+      ]);
+
+      $media_map = array_combine(array_column($rows, "id"), array_column($rows, "name"));
+
+      for ($i = 0; count($items) > $i; $i++) {
+        if (is_array($items[$i]["head"]["photos"] ?? null)) {
+          $items[$i]["head"]["photos"] = array_filter(array_map(fn (array $entry) => [
+            $media_map[$entry[0]] ?? null,
+            $media_map[$entry[1]] ?? null,
+          ], $items[$i]["head"]["photos"]), fn (array $entry) => is_string($entry[0]) && is_string($entry[1]));
+        }
+      }
     }
 
     $counts = [];
@@ -137,7 +159,7 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
     return [
       "count" => $counts,
       "items" => $items,
-      "title" => "{$p}{$m}{$a} ({$count}件)",
+      "title" => "{$p}{$m}{$a} (" . number_format($count) . "件)",
       "total_pages" => $total_pages,
     ];
   }
