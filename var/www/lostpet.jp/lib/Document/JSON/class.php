@@ -25,15 +25,19 @@ class JSONDocument
 
     // public
     if (2 === _REQUEST_) {
-      if ("/api/public/document" === _PATH_) {
-        require __DIR__ . "/contents/document/index.php";
-        $content = JSONDocumentDocument::class;
-      } elseif ("/api/public/data" === _PATH_) {
-        require __DIR__ . "/contents/data/index.php";
-        $content = JSONDocumentData::class;
-      } else {
-        require __DIR__ . "/contents/document/index.php";
-        $content = JSONDocumentDocument::class;
+      if ("get" === _METHOD_) {
+        if ("/api/public/document" === _PATH_) {
+          require __DIR__ . "/contents/document/index.php";
+          $content = JSONDocumentDocument::class;
+        } elseif ("/api/public/data" === _PATH_) {
+          require __DIR__ . "/contents/data/index.php";
+          $content = JSONDocumentData::class;
+        } elseif ("/api/public/date" === _PATH_) {
+          if (is_string($_GET["path"] ?? null)) {
+            require __DIR__ . "/contents/date/index.php";
+            $content = JSONDocumentDate::class;
+          }
+        }
       }
 
       // private
