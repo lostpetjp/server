@@ -34,24 +34,6 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
     $animal = $animal_id ? array_filter(Animal::$data, fn (array $entry) => $entry["search"])[$animal_id] ?? null : null;
     $prefecture = $prefecture_id ? array_filter(Prefecture::$data, fn (array $entry) => $entry["search"])[$prefecture_id] ?? null : null;
 
-    $media_ids = [];
-
-    foreach ($items as $item) {
-      $head = $item["head"];
-      $photos = $head["photos"] ?? [];
-
-      foreach ($photos as $photo) {
-        $media_ids = [...$media_ids, ...$photo,];
-      }
-    }
-
-    $rows = RDS::fetchAll("SELECT `id`, `name` FROM `media` WHERE `id` IN (" . implode(",", array_fill(0, ($limit = count($media_ids)), "?")) . ") AND `status`=? LIMIT {$limit};", [
-      ...$media_ids,
-      1,
-    ]);
-
-    $media_map = array_combine(array_column($rows, "id"), array_column($rows, "name"));
-
     return [
       "attribute" => [
         "class" => "d2a",
@@ -204,6 +186,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                           "attribute" => [
                             "class" => "a2 c25b1a c25b1b hb3" . (1 !== $sort_id ? " c25b1s" : ""),
                             "href" => Search::createUrl([
+                              "page" => 1,
                               "sort" => 0,
                             ] + $info),
                           ],
@@ -220,6 +203,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                           "attribute" => [
                             "class" => "a2 c25b1a c25b1c hb3" . (1 === $sort_id ? " c25b1s" : ""),
                             "href" => Search::createUrl([
+                              "page" => 1,
                               "sort" => 1,
                             ] + $info),
                           ],
@@ -281,6 +265,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                         "class" => "a2 c25e1a hb2" . (0 === $matter_id ? " c25e1s" : "") . (!$counts[0] ? " c25e1d" : ""),
                         "href" => Search::createUrl([
                           "matter" => 0,
+                          "page" => 1,
                         ] + $info),
                       ],
                       "children" => [
@@ -304,6 +289,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                         "class" => "a2 c25e1a hb2" . (1 === $matter_id ? " c25e1s" : "") . (!$counts[1] ? " c25e1d" : ""),
                         "href" => Search::createUrl([
                           "matter" => 1,
+                          "page" => 1,
                         ] + $info),
                       ],
                       "children" => [
@@ -327,6 +313,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                         "class" => "a2 c25e1a hb2" . (2 === $matter_id ? " c25e1s" : "") . (!$counts[2] ? " c25e1d" : ""),
                         "href" => Search::createUrl([
                           "matter" => 2,
+                          "page" => 1,
                         ] + $info),
                       ],
                       "children" => [
@@ -388,7 +375,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
             "attribute" => [
               "class" => "c25f c26",
             ],
-            "children" => array_map(fn (array $item) => self::createItem($item, $media_map), $object["items"]),
+            "children" => array_map(fn (array $item) => self::createItem($item), $object["items"]),
             "tagName" => "div",
           ],
           self::createPager($page_id,  $total_pages, fn (int $page) => Search::createUrl([
@@ -403,7 +390,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
     ];
   }
 
-  static private function createItem(array $item, array $media_map): array
+  static private function createItem(array $item): array
   {
     $matter_id = $item["matter"];
     $matter = Matter::$data[$matter_id];
@@ -414,8 +401,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
 
     $head = $item["head"];
     $photos = $head["photos"] ?? [];
-    $id = $photos[0][0] ?? null;
-    $name = $id ? ($media_map[$id] ?? null) : null;
+    $name = $photos[0][0] ?? null;
     $info = $name ? Media::parse($name) : null;
     if ($info) $name = $info["prefix"] . "-w600a43" . $info["suffix"];
 
@@ -448,7 +434,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                   "class" => "o26a1d",
                 ],
                 "children" => (1 === $matter_id ? (isset($head["pet"]) ? $head["pet"] : "名無し") : (99 === $animal_id ? "その他" : $animal["title"])),
-                "tagName" => "span",
+                "tagName" => "div",
               ],
               [
                 "attribute" => [
@@ -457,46 +443,40 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                 "children" => $matter["title"],
                 "tagName" => "div",
               ],
-              $info ? [
+              [
                 "attribute" => [
                   "class" => "o26a1c",
                 ],
                 "children" => [
-                  [
-                    "attribute" => [
-                      "srcset" => "/media/{$name}.avif",
-                      "type" => "image/avif",
+                  ...($info ? [
+                    [
+                      "attribute" => [
+                        "srcset" => "/media/{$name}.avif",
+                        "type" => "image/avif",
+                      ],
+                      "tagName" => "source",
                     ],
-                    "tagName" => "source",
-                  ],
-                  [
-                    "attribute" => [
-                      "srcset" => "/media/{$name}.webp",
-                      "type" => "image/webp",
+                    [
+                      "attribute" => [
+                        "srcset" => "/media/{$name}.webp",
+                        "type" => "image/webp",
+                      ],
+                      "tagName" => "source",
                     ],
-                    "tagName" => "source",
-                  ],
+                  ] : []),
                   [
                     "attribute" => [
                       "class" => "c26g",
                       "decoding" => "async",
                       "height" => "450",
                       "loading" => "lazy",
-                      "src" => "/media/{$name}",
+                      "src" => $info ? "/media/{$name}" : "/noimage.svg",
                       "width" => "600",
                     ],
                     "tagName" => "img",
                   ],
                 ],
                 "tagName" => "picture",
-              ] : [
-                "attribute" => [
-                  "class" => "o26a1c c26g",
-                  "decoding" => "async",
-                  "loading" => "lazy",
-                  "src" => "/icon.svg",
-                ],
-                "tagName" => "img",
               ],
             ],
             "tagName" => "header",
