@@ -36,6 +36,8 @@ class HTMLDocument
       $content = HTMLDocumentTermsContent::class;
     }
 
+    if (!$content) Document::error(404);
+
     return new HTMLDocumentClient($content, $pathname, $mode);
   }
 
