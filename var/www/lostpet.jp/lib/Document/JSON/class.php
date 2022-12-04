@@ -29,6 +29,9 @@ class JSONDocument
         if ("/api/public/document" === _PATH_) {
           require __DIR__ . "/contents/document/index.php";
           $content = JSONDocumentDocument::class;
+        } elseif ("/api/public/count" === _PATH_) {
+          require __DIR__ . "/contents/count/index.php";
+          $content = JSONDocumentCount::class;
         } elseif ("/api/public/data" === _PATH_) {
           require __DIR__ . "/contents/data/index.php";
           $content = JSONDocumentData::class;
