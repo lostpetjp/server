@@ -21,8 +21,10 @@ class Batch
       $hours = "Batch{$id}"::$hours;
 
       if (
-        $_SERVER['REQUEST_TIME'] > ($updated_at + $span)
-        && (!$hours || in_array((int)date("H"), $hours, true))
+        0 === $updated_at
+        || ($_SERVER['REQUEST_TIME'] > ($updated_at + $span)
+          && (!$hours || in_array((int)date("H"), $hours, true))
+        )
       ) {
         self::run($id);
 
