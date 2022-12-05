@@ -112,12 +112,12 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
 
     $case_ids = CaseIndex::get($matter_id, $animal_id, $prefecture_id, $sort_id, $page_id, $version, $count);
 
-    $items = $case_ids ? RDS::fetchAll("SELECT `id`, `matter`, `animal`, `prefecture`, `created_at`, `updated_at`, `starts_at`, `expires_at`, `head` FROM `case` WHERE `id` IN (" . implode(",", array_fill(0, ($limit = count($case_ids)), "?")) . ") LIMIT {$limit};", [
+    $items = $case_ids ? RDS::fetchAll("SELECT `id`, `matter`, `animal`, `prefecture`, `created_at`, `modified_at`, `starts_at`, `expires_at`, `head` FROM `case` WHERE `id` IN (" . implode(",", array_fill(0, ($limit = count($case_ids)), "?")) . ") LIMIT {$limit};", [
       ...$case_ids,
     ]) : [];
 
     if ($items) {
-      array_multisort(array_column($items, 1 === $sort_id ? "updated_at" : "starts_at"), SORT_DESC, array_column($items, "id"), SORT_DESC, $items);
+      array_multisort(array_column($items, 1 === $sort_id ? "modified_at" : "starts_at"), SORT_DESC, array_column($items, "id"), SORT_DESC, $items);
 
       $items = array_map(fn (array $row) => [
         "head" => json_decode($row["head"], true),
@@ -127,7 +127,10 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
 
       for ($i = 0; count($items) > $i; $i++) {
         foreach ($items[$i]["head"]["photos"] ?? [] as $photo) $media_ids = [...$media_ids, ...$photo,];
+        if (is_int($items[$i]["head"]["cover"] ?? null)) $media_ids[] = $items[$i]["head"]["cover"];
       }
+
+      $media_ids = [...array_unique($media_ids)];
 
       $rows = RDS::fetchAll("SELECT `id`, `name` FROM `media` WHERE `id` IN (" . implode(",", array_fill(0, ($limit = count($media_ids)), "?")) . ") AND `status`=? LIMIT {$limit};", [
         ...$media_ids,
@@ -142,6 +145,11 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
             $media_map[$entry[0]] ?? null,
             $media_map[$entry[1]] ?? null,
           ], $items[$i]["head"]["photos"]), fn (array $entry) => is_string($entry[0]) && is_string($entry[1]));
+        }
+
+        if (is_int($items[$i]["head"]["cover"] ?? null)) {
+          $items[$i]["head"]["cover"] = $media_map[$items[$i]["head"]["cover"]] ?? null;
+          if (!$items[$i]["head"]["cover"]) unset($items[$i]["head"]["cover"]);
         }
       }
     }
