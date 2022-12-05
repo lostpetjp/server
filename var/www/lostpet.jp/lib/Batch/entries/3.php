@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 class Batch3
 {
-  static public int $span = 600;
+  static public int $span = 30;
   static public array $hours = [];
 
   static public function dispatch(): void
