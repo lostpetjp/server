@@ -400,8 +400,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
     $prefecture = Prefecture::$data[$prefecture_id];
 
     $head = $item["head"];
-    $photos = $head["photos"] ?? [];
-    $name = $photos[0][0] ?? null;
+    $name = $head["cover"] ?? null;
     $info = $name ? Media::parse($name) : null;
     if ($info) $name = $info["prefix"] . "-w600a43" . $info["suffix"];
 
