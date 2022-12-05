@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 class Batch6
 {
-  static public int $span = 3600;
-  static public array $hours = [7, 9, 11, 13, 15, 17, 19, 21, 23, 3,];
+  static public int $span = 7200;
+  static public array $hours = [4, 10, 18,];
 
   static public function dispatch(): void
   {
