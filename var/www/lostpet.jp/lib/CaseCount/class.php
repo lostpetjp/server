@@ -38,69 +38,69 @@ class CaseCount
     return $count ? (int)$count : 0;
   }
 
-  static public function getAll()
-  {
-  }
-
   /**
    * 案件数の正確な同期
    * 負荷がかかる処理なので時間を置くこと
    */
-  static public function updateAll(): void
+  static public function updateAll(bool $debounce = false): void
   {
-    $matter_ids = array_column(Matter::$data, "id");
-    $matter_ids = [0, ...$matter_ids,];
+    if ($debounce) {
+      Queue::create(7, 0, 300);
+    } else {
+      $matter_ids = array_column(Matter::$data, "id");
+      $matter_ids = [0, ...$matter_ids,];
 
-    $animal_ids = array_column(Animal::$data, "id");
-    $animal_ids = [0, ...$animal_ids,];
+      $animal_ids = array_column(Animal::$data, "id");
+      $animal_ids = [0, ...$animal_ids,];
 
-    $prefecture_ids = array_column(Prefecture::$data, "id");
-    $prefecture_ids = [0, ...$prefecture_ids,];
+      $prefecture_ids = array_column(Prefecture::$data, "id");
+      $prefecture_ids = [0, ...$prefecture_ids,];
 
-    $exists_keys = [];
-    $update_data_set = [];
-    $request_data_set = [];
+      $exists_keys = [];
+      $update_data_set = [];
+      $request_data_set = [];
 
-    foreach ($matter_ids as $matter_id) {
-      foreach ($animal_ids as $animal_id) {
-        foreach ($prefecture_ids as $prefecture_id) {
-          $request_data_set[] = [$matter_id, $animal_id, $prefecture_id,];
-        }
-      }
-    }
-
-    foreach ($request_data_set as $request_data) {
-      [$matter_id, $animal_id, $prefecture_id,] = $request_data;
-      $key = implode(":", $request_data);
-
-      if (!in_array($key, $exists_keys, true)) {
-        $exists_keys[] = $key;
-
-        $values = [];
-        $wheres = [];
-
-        foreach (["matter", "animal", "prefecture",] as $name) {
-          $id = ${"{$name}_id"};
-
-          if ($id) {
-            $values[] = $id;
-            $wheres[] = "`{$name}`=?";
+      foreach ($matter_ids as $matter_id) {
+        foreach ($animal_ids as $animal_id) {
+          foreach ($prefecture_ids as $prefecture_id) {
+            $request_data_set[] = [$matter_id, $animal_id, $prefecture_id,];
           }
         }
-
-        $wheres = [...$wheres, "`publish`=1", "`status`=1",];
-
-        $count = RDS::fetchColumn("SELECT COUNT(*) FROM `case` WHERE " . implode(" AND ", $wheres) . ";", [
-          ...$values,
-        ]);
-
-        $update_data_set = [...$update_data_set, $matter_id, $animal_id, $prefecture_id, $count,];
       }
-    }
 
-    RDS::execute("INSERT INTO `case-count` (`matter`, `animal`, `prefecture`, `count`) VALUES " . implode(",", array_fill(0, (count($update_data_set) / 4), "(?, ?, ?, ?)")) . " ON DUPLICATE KEY UPDATE `count`=VALUES(`count`);", [
-      ...$update_data_set,
-    ]);
+      foreach ($request_data_set as $request_data) {
+        [$matter_id, $animal_id, $prefecture_id,] = $request_data;
+        $key = implode(":", $request_data);
+
+        if (!in_array($key, $exists_keys, true)) {
+          $exists_keys[] = $key;
+
+          $values = [];
+          $wheres = [];
+
+          foreach (["matter", "animal", "prefecture",] as $name) {
+            $id = ${"{$name}_id"};
+
+            if ($id) {
+              $values[] = $id;
+              $wheres[] = "`{$name}`=?";
+            }
+          }
+
+          $wheres = [...$wheres, "`publish`=1", "`status`=1",];
+
+          $count = RDS::fetchColumn("SELECT COUNT(*) FROM `case` WHERE " . implode(" AND ", $wheres) . ";", [
+            ...$values,
+          ]);
+
+          $update_data_set = [...$update_data_set, $matter_id, $animal_id, $prefecture_id, $count,];
+        }
+      }
+
+      RDS::execute("INSERT INTO `case-count` (`matter`, `animal`, `prefecture`, `count`) VALUES " . implode(",", array_fill(0, (count($update_data_set) / 4), "(?, ?, ?, ?)")) . " ON DUPLICATE KEY UPDATE `count`=VALUES(`count`);", [
+        ...$update_data_set,
+      ]);
+    }
   }
 
   /**
