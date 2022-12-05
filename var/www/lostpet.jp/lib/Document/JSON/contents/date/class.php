@@ -25,7 +25,7 @@ class JSONDocumentDate
       $version = CaseVersion::update($matter_id, $animal_id, $prefecture_id, $sort_id);
     }
 
-    $column = 1 === $sort_id ? "updated_at" : "starts_at";
+    $column = 1 === $sort_id ? "modified_at" : "starts_at";
 
     $case_ids = CaseIndex::get($matter_id, $animal_id, $prefecture_id, $sort_id, $page_id, $version);
     $count = count($case_ids);
