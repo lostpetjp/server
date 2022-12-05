@@ -5,7 +5,7 @@ declare(strict_types=1);
 class Batch12
 {
   static public int $span = 30;
-  static public array $hours = [];
+  static public array $hours = [23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,];
 
   static public function dispatch(): void
   {
@@ -38,9 +38,9 @@ class Batch12
       }
     }
 
-    $entries = RDS::fetchAll("SELECT `id` FROM `batch` WHERE `type`=? AND ? > `updated_at` ORDER BY `updated_at` ASC LIMIT 10;", [
+    $entries = RDS::fetchAll("SELECT `id` FROM `batch` WHERE `type`=? AND ? > `updated_at` ORDER BY `updated_at` ASC LIMIT 50;", [
       4,
-      $_SERVER["REQUEST_TIME"] - 86400,
+      $_SERVER["REQUEST_TIME"] - (7 * 86400),
     ]);
 
     $media_data_set = RDS::fetchAll("SELECT `id`, `archive`, `status` FROM `media` WHERE `id` IN (" . implode(",", array_fill(0, count($entries), "?")) . ");", [
@@ -131,8 +131,11 @@ class Batch12
 
         $update_media_ids[] = $media_id;
       } else {
+        new Discord("queue", [
+          "content" => "[シミュレート] `media={$media_id}`のチェックを終了しました。",
+        ]);
 
-        $delete_media_ids[] = $media_id;
+        // $delete_media_ids[] = $media_id;
       }
     }
 
