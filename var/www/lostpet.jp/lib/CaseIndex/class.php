@@ -23,7 +23,7 @@ class CaseIndex
       }
 
       if ($count) {
-        $order = 1 === $sort_id ? "updated_at" : "starts_at";
+        $order = 1 === $sort_id ? "modified_at" : "starts_at";
 
         $wheres = array_filter([
           $matter_id ? (2 === $matter_id ? "(`matter`=? OR `matter`=? OR `matter`=?)" : "`matter`=?") : null,
