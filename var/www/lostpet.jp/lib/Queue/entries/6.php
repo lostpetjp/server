@@ -34,7 +34,7 @@ class Queue6
       CaseCount::updateAll(true);
 
       new Discord("case", [
-        "content" => "掲載期限により終了しました。 <https://lostpet.jp/{$id}>",
+        "content" => ":hourglass: 掲載期限により終了しました。 <https://lostpet.jp/{$id}>",
       ]);
     }
 
