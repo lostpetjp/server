@@ -17,9 +17,22 @@ class Queue4
 
     if ($case_data && $case_data["status"] && $case_data["publish"] && !$case_data["archive"]) {
       if ($_SERVER["REQUEST_TIME"] > $case_data["updated_at"] + 600) {
+        // Discordに通知
         new Discord("case", [
           "content" => ":rocket: 新規登録がありました。 <https://lostpet.jp/" . $case_data["id"] . ">",
         ]);
+
+        // コミュニティに新着通知
+        new Discord("notify-case", [
+          "content" => ":blue_circle: 新規登録がありました。 <https://lostpet.jp/" . $case_data["id"] . "> (" . Matter::$data[$case_data["matter"]]["title"] . " / " . Animal::$data[$case_data["animal"]]["title"] . " / " . Prefecture::$data[$case_data["prefecture"]]["title"] . " / " . date("Y-m-d", $case_data["starts_at"]) . ")",
+        ]);
+
+        new Slack("notify-case", [
+          "text" => ":blue_circle: 新規登録がありました。 <https://lostpet.jp/" . $case_data["id"] . "> (" . Matter::$data[$case_data["matter"]]["title"] . " / " . Animal::$data[$case_data["animal"]]["title"] . " / " . Prefecture::$data[$case_data["prefecture"]]["title"] . " / " . date("Y-m-d", $case_data["starts_at"]) . ")",
+        ]);
+
+        // メール通知 (予定)
+
       } else {
         return Queue::update(self::$type, $id, 600);
       }
