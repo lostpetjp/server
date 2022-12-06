@@ -14,6 +14,11 @@ class HTMLDocument
       require __DIR__ . "/admin.php";
     }
 
+    // sitemap
+    if (false !== strpos($pathname, "/sitemap/")) {
+      require __DIR__ . '/contents/sitemap/index.php';
+    }
+
     // /terms
     if ("/terms" === $pathname) {
       require __DIR__ . '/contents/terms/index.php';
@@ -326,7 +331,7 @@ class HTMLDocument
     if ($noindex) header('x-robots-tag:noindex');
     header('cross-origin-embedder-policy:require-corp');
     header('cross-origin-opener-policy:same-origin');
-    header('expect-ct:max-age=86400,enforce');
+    // header('expect-ct:max-age=86400,enforce');
     header('referrer-policy:no-referrer-when-downgrade');
 
     http_response_code(200);
