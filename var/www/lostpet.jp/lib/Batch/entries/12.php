@@ -43,7 +43,7 @@ class Batch12
       $_SERVER["REQUEST_TIME"] - (7 * 86400),
     ]);
 
-    $media_data_set = RDS::fetchAll("SELECT `id`, `archive`, `status` FROM `media` WHERE `id` IN (" . implode(",", array_fill(0, count($entries), "?")) . ");", [
+    $media_data_set = RDS::fetchAll("SELECT `id`, `archive`, `status`, `updated_at` FROM `media` WHERE `id` IN (" . implode(",", array_fill(0, count($entries), "?")) . ");", [
       ...array_column($entries, "id"),
     ]);
 
@@ -53,89 +53,94 @@ class Batch12
 
     $exists_case_ids = [];
     $exists_comment_ids = [];
-    $publish_case_ids = [];
+    $live_case_ids = [];
 
     $delete_media_ids = [...$delete_media_ids, ...array_diff(array_column($entries, "id"), array_column($media_data_set, "id")),];
 
     foreach ($media_data_set as $media_data) {
       $media_id = $media_data["id"];
 
-      if (0 === $media_data["archive"]) {
-        $can_archive = false;
+      // 30日以上経過している行がチェックの対象
+      if (($_SERVER["REQUEST_TIME"] - (30 * 86400)) > $media_data["updated_at"]) {
+        if (0 === $media_data["archive"]) {
+          $can_archive = false;
 
-        // 削除されている場合 => ファイルを削除
-        if (!$media_data["status"]) {
-          $can_archive = true;
+          // 削除されている場合 => ファイルを削除
+          if (!$media_data["status"]) {
+            $can_archive = true;
 
-          // 削除されていない場合 => 関連が存在しなければ => ファイルを削除
-        } else {
-          $can_archive = true;
+            // 削除されていない場合 => 関連が存在しなければ => ファイルを削除
+          } else {
+            $can_archive = true;
 
-          $rel_data_set = RDS::fetchAll("SELECT `type`, `status`, `content` FROM `media-relation` WHERE `media`=?;", [
-            $media_id,
-          ]);
+            $rel_data_set = RDS::fetchAll("SELECT `type`, `status`, `content` FROM `media-relation` WHERE `media`=?;", [
+              $media_id,
+            ]);
 
-          if ($rel_data_set) {
-            array_multisort(array_column($rel_data_set, "type"), SORT_ASC, $rel_data_set);
+            if ($rel_data_set) {
+              array_multisort(array_column($rel_data_set, "type"), SORT_ASC, $rel_data_set);
 
-            foreach ($rel_data_set as $rel_data) {
-              if ($rel_data["status"]) {
-                $content_id = $rel_data["content"];
+              foreach ($rel_data_set as $rel_data) {
+                if ($rel_data["status"]) {
+                  $content_id = $rel_data["content"];
 
-                switch ($rel_data["type"]) {
-                  case 1:
-                    $exists = $exists_case_ids[$content_id] ?? null;
+                  switch ($rel_data["type"]) {
+                    case 1:
+                      $exists = $exists_case_ids[$content_id] ?? null;
 
-                    if (null === $exists) {
-                      $exists_case_ids[$content_id] = $exists = self::existsCase($content_id);
-                    }
+                      if (null === $exists) {
+                        $exists_case_ids[$content_id] = $exists = self::existsCase($content_id);
+                      }
 
-                    if ($exists) $can_archive = false;
-                    break;
-                  case 2:
-                    $exists = $exists_comment_ids[$content_id] ?? null;
+                      if ($exists) $can_archive = false;
+                      break;
+                    case 2:
+                      $exists = $exists_comment_ids[$content_id] ?? null;
 
-                    if (null === $exists) {
-                      $exists_comment_ids[$content_id] = $exists = self::existsComment($content_id);
-                    }
+                      if (null === $exists) {
+                        $exists_comment_ids[$content_id] = $exists = self::existsComment($content_id);
+                      }
 
-                    if ($exists) $can_archive = false;
-                    break;
+                      if ($exists) $can_archive = false;
+                      break;
 
-                  case 3:
-                    $exists = $publish_case_ids[$content_id] ?? null;
+                    case 3:
+                      $exists = $live_case_ids[$content_id] ?? null;
 
-                    if (null === $exists) {
-                      $publish_case_ids[$content_id] = $exists = self::isPublishCase($content_id);
-                    }
+                      if (null === $exists) {
+                        $live_case_ids[$content_id] = $exists = self::isLiveCase($content_id);
+                      }
 
-                    if ($exists) $can_archive = false;
-                    break;
+                      if ($exists) $can_archive = false;
+                      break;
+                  }
                 }
-              }
 
-              if (!$can_archive) break;
+                if (!$can_archive) break;
+              }
             }
           }
-        }
 
-        // 削除フラグが立っていたら、凍結する
-        if ($can_archive) {
+          // 削除フラグが立っていたら、凍結する
+          if ($can_archive) {
+            new Discord("queue", [
+              "content" => "[シミュレート] `media={$media_id}`を凍結しました。",
+            ]);
+
+            // TODO
+            // $archive_media_ids[] = $media_id;
+          }
+
+          $update_media_ids[] = $media_id;
+        } else {
           new Discord("queue", [
-            "content" => "[シミュレート] `media={$media_id}`を凍結しました。",
+            "content" => "[シミュレート] `media={$media_id}`のチェックを終了しました。",
           ]);
 
-          // TODO
-          // $archive_media_ids[] = $media_id;
+          // $delete_media_ids[] = $media_id;
         }
-
-        $update_media_ids[] = $media_id;
       } else {
-        new Discord("queue", [
-          "content" => "[シミュレート] `media={$media_id}`のチェックを終了しました。",
-        ]);
-
-        // $delete_media_ids[] = $media_id;
+        $update_media_ids[] = $media_id;
       }
     }
 
@@ -172,25 +177,25 @@ class Batch12
 
   static private function existsCase(int $case_id): bool
   {
-    $case_data = RDS::fetch("SELECT `id`, `archive` FROM `case` WHERE `id`=?;", [
+    $case_data = RDS::fetch("SELECT `archive` FROM `case` WHERE `id`=?;", [
       $case_id,
     ]);
 
     return !!($case_data && !$case_data["archive"]);
   }
 
-  static private function isPublishCase(int $case_id): bool
+  static private function isLiveCase(int $case_id): bool
   {
-    $case_data = RDS::fetch("SELECT `id`, `archive` FROM `case` WHERE `id`=?;", [
+    $case_data = RDS::fetch("SELECT `status` FROM `case` WHERE `id`=?;", [
       $case_id,
     ]);
 
-    return !!($case_data && $case_data["status"] && $case_data["publish"]);
+    return !!($case_data && $case_data["status"]);
   }
 
   static private function existsComment(int $comment_id): bool
   {
-    $comment_data = RDS::fetch("SELECT `id`, `archive`, `parent` FROM `comment` WHERE `id`=?;", [
+    $comment_data = RDS::fetch("SELECT `archive`, `parent` FROM `comment` WHERE `id`=?;", [
       $comment_id,
     ]);
 
