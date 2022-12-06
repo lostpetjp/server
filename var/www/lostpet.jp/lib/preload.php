@@ -28,6 +28,7 @@ foreach ([
   "Search",
   "SES",
   "Secret",
+  "Slack",
   "utils",
 ] as $name) {
   require __DIR__ . "/{$name}/index.php";
