@@ -23,9 +23,9 @@ class Queue5
       $message = null;
 
       if (!$case_data["status"]) {
-        $message = "削除されました。";
+        $message = ":x: 削除されました。";
       } elseif (!$case_data["publish"]) {
-        $message = "掲載終了しました。";
+        $message = ":homes: 掲載終了しました。";
       }
 
       if ($message) {
