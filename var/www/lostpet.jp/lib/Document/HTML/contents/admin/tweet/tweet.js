@@ -16,7 +16,7 @@ textareaE.addEventListener("select", (event) => {
     inputE.type = "checkbox";
     inputE.name = "features";
     inputE.checked = true;
-    labelE.append(inputE, new Text(text));
+    labelE.append(inputE, new Text(text.replace(/\n/g, "")));
     listE.appendChild(itemE);
 
     inputE.addEventListener("change", () => {
