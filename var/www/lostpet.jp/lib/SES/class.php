@@ -6,7 +6,7 @@ class SES
 {
   static public function send(?string $from = "",  string $to = "",  string $title = "",  string $body = "")
   {
-    $body .= "\n\n【心当たりがない方へ】"
+    $body .= /*"\n\n【心当たりがない方へ】"
       . "\nこのメールが届いた心当たりがない場合、申し訳ありませんが破棄して下さい。"
       . "\nリンクをクリックしない限り、操作者は何もできません。"
 
@@ -14,9 +14,9 @@ class SES
       . "\nIPアドレス: " . _IP_
 
       . "\n\n【送信元】"
-      . "\nhttps://" . $_SERVER["SERVER_NAME"] . "/"
+      . "\nhttps://" . _SERVER_ . "/"
 
-      . "\n\n※このメールに返信しても届きません。";
+      .*/ "\n\n※このメールに返信しても届きません。";
 
     $try_count = 0;
 
@@ -42,7 +42,6 @@ class SES
           ],
           'Source' => $from ? $from : "no-reply@" . _DOMAIN_,
         ]);
-
 
         return isset($response["@metadata"]["statusCode"]) && $response["@metadata"]["statusCode"] === 200 ? true : Document::error(500);
       } catch (Aws\Exception\AwsException $e) {
