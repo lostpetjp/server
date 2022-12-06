@@ -18,7 +18,7 @@ class Queue4
     if ($case_data && $case_data["status"] && $case_data["publish"] && !$case_data["archive"]) {
       if ($_SERVER["REQUEST_TIME"] > $case_data["updated_at"] + 600) {
         new Discord("case", [
-          "content" => "新規登録がありました。 <https://lostpet.jp/" . $case_data["id"] . ">",
+          "content" => ":rocket: 新規登録がありました。 <https://lostpet.jp/" . $case_data["id"] . ">",
         ]);
       } else {
         return Queue::update(self::$type, $id, 600);
