@@ -19,13 +19,20 @@
 
 | ID | 説明 |
 | -- | -- |
-| 1 | 案件の移転。 | 
-| 2 | メディアの移転。 | 
-| 3 | コメントの移転。 | 
-| 4 | `media-relation`のclean up。 | 
-| 5 | 問い合わせテーブルの古いデータを削除。 | 
-| 6 | 案件数テーブルの一斉更新。 | 
-| 7 | 案件のバージョンテーブルの古いデータを削除。 | 
+| 1 | 移転 (案件) | 
+| 2 | 移転 (メディア) | 
+| 3 | 移転 (コメント) | 
+| 4 | clean up (`media-relation`) | 
+| 5 | clean up (`contact`) | 
+| 6 | `CaseCount::updateAll()` | 
+| 7 | clean up (`case-version`) | 
+| 8 | `Queue::batch()` | 
+| 9 | case expires | 
+| 10 | case (`archive=1`) |
+| 11 | clean up (`queue`) | 
+| 12 | media (`archive=1`)。 | 
+| 13 | media (`archive=2`) |  
+| 14 | comment (`archive=1`) | 
 
 ## Table
 | ID | 説明 |
@@ -33,3 +40,5 @@
 | 1 | 定期実行するスクリプトの管理。 | 
 | 2 | 案件の移転状況の管理。 | 
 | 3 | コメントの移転状況の管理。 | 
+| 4 | メディア (check archive) | 
+| 5 | コメント (`archive=1`) | 
