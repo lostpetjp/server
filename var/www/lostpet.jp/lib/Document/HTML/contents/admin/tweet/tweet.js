@@ -9,10 +9,11 @@ textareaE.addEventListener("select", (event) => {
   if (document.activeElement === textareaE) {
     const itemE = document.createElement("li");
     const labelE = document.createElement("label");
+    const inputE = document.createElement("input");
+
     labelE.style.display = "block";
     labelE.style.cursor = "pointer";
     itemE.appendChild(labelE);
-    const inputE = document.createElement("input");
     inputE.type = "checkbox";
     inputE.name = "features";
     inputE.checked = true;
@@ -27,6 +28,12 @@ textareaE.addEventListener("select", (event) => {
   }
 });
 
+resultE.addEventListener("input", () => {
+  shareAE.href = "https://twitter.com/share?hashtags=" + encodeURIComponent(data.hashtags) + "&text=" + encodeURIComponent(resultE.value);
+}, {
+  passive: true,
+});
+
 function updateText() {
   let featuresTexts = [];
 
@@ -37,7 +44,6 @@ function updateText() {
   resultE.value = data.prefix + "\n\n" + featuresTexts.join("\n") + data.suffix;
 
   shareAE.href = "https://twitter.com/share?hashtags=" + encodeURIComponent(data.hashtags) + "&text=" + encodeURIComponent(resultE.value);
-
 };
 
 updateText();
