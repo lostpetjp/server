@@ -59,7 +59,157 @@ class HTMLDocument
 
     $noindex = $this->client->noindex;
 
-    // create style
+    $style_bundle_path = '/styles/bundle/' . $this->createStyle() . '.css?v=' . Config::$version;
+
+    $html =
+      '<!DOCTYPE html>'
+      . '<html class="t1">'
+      .   '<head>'
+      .     '<meta charset="UTF-8">'
+      .     implode("", array_map(fn (int $id) => '<link as="script" crossOrigin="anonymous" href="/scripts/' . $id . '.js?v=' . Config::$version . '" rel="preload">', $this->client->js))
+      .     '<link as="style" href="/style.css?v=' . Config::$version . '" rel="preload">'
+      .     '<link as="style" href="' . $style_bundle_path . '" rel="preload">'
+      .     '<link as="script" href="/script.js?v=' . Config::$version . '" rel="preload">'
+      .     Json2Node::create($this->client->head)
+      .     ($noindex ? '<meta name="robots" content="noindex">' : '')
+      .     '<meta content="telephone=no" name="format-detection">'
+      .     '<meta content="width=device-width,initial-scale=1.0" name="viewport">'
+      .     '<meta content="LOSTPET.JP (迷子ペットのデータベース)" name="application-name">'
+      .     '<meta content="LOSTPET.JP (迷子ペットのデータベース)" name="apple-mobile-web-app-title">'
+      .     '<meta content="yes" name="mobile-web-app-capable">'
+      .     '<meta content="yes" name="apple-mobile-web-app-capable">'
+      .     '<meta content="#228ae6" name="apple-mobile-web-app-status-bar-style">'
+      .     '<meta content="ja_JP" property="og:locale">'
+      .     '<meta content="LOSTPET.JP (迷子ペットのデータベース)" name="og:site_name">'
+      .     '<meta content="' . _DOMAIN_ . '" name="twitter:domain">'
+      .     '<meta content="@lostpetjp" name="twitter:site">'
+      .     '<meta content="@arayutw" name="twitter:creator">'
+      .     '<meta content="summary" name="twitter:card">'
+      .     '<meta content="#228ae6" name="msapplication-TileColor">'
+      .     '<meta content="#228ae6" name="theme-color">'
+      .     '<link href="/humans.txt" rel="author">'
+      .     '<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180">'
+      .     '<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png">'
+      .     '<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png">'
+      .     '<link href="/manifest.webmanifest" rel="manifest">'
+      .     '<link color="#228ae6" href="/safari-pinned-tab.svg" rel="mask-icon">'
+      .     '<link href="/style.css?v=' . Config::$version . '" rel="stylesheet">'
+      .     '<link href="' . $style_bundle_path . '" rel="stylesheet">'
+      .     '<script>'
+      .       '(function(){var t;("2"===(t=localStorage.getItem("t"))||"1"!==t&&matchMedia("(prefers-color-scheme:dark)").matches)&&document.documentElement.classList.replace("t1","t2"),("2"===(t=localStorage.getItem("r"))||"1"!==t&&matchMedia("(prefers-reduced-motion)").matches)&&document.documentElement.classList.add("r2")}());'
+      .       'self.a=' . json_encode([
+        "document" => [
+          "template" => $this->client->template,
+          "content" => $this->client->content,
+          "pathname" => $this->client->pathname,
+          "search" => $this->client->search,
+        ],
+        "version" => 0,
+      ])
+      .     ';document.currentScript.remove()</script>'
+      .   '</head>'
+      .   '<body>'
+      .     '<header class="d1">'
+      .       '<a class="d1a" href="/">'
+      .         '<picture>'
+      .            '<source srcset="/logo.svg" media="(min-width: 480px)">'
+      .            '<img class="d1a1" src="/icon.svg">'
+      .         '</picture>'
+      .       '</a>'
+      .       '<a class="a3 d1b ht1" href="/">サイトに掲載</a>'
+      .     '</header>'
+      .     '<div class="d2">'
+      .       Json2Node::create($this->client->body)  // <main class="d2a"> ... </main>
+      .       '<nav class="d2b">'
+      .         '<div class="d2b1">'
+      .           '<h2 class="d2b1a">メニュー</h2>'
+      .           '<div class="d2b1b">'
+      .             '<h5 class="d2b1b1">検索</h5>'
+      .             '<ul class="d2b1b2">'
+      .               '<li><a class="a2 d2b1b2a hb2" href="/search/lost">迷子</a></li>'
+      .               '<li><a class="a2 d2b1b2a hb2" href="/search/find">保護</a></li>'
+      .             '</ul>'
+      .           '</div>'
+      .           '<div class="d2b1b d2b1c">'
+      .             '<h5 class="d2b1b1">お役立ち</h5>'
+      .             '<ul class="d2b1b2">'
+      .               '<li><a class="a2 d2b1b2a hb2" href="/register">サイトに掲載する</a></li>'
+      .               '<li><a class="a2 d2b1b2a hb2" href="/poster">ポスターを作成する</a></li>'
+      .             '</ul>'
+      .           '</div>'
+      .           '<div class="d2b1b d2b1c">'
+      .             '<h5 class="d2b1b1">サイト案内</h5>'
+      .             '<ul class="d2b1b2">'
+      .               '<li><a class="a2 d2b1b2a hb2" href="/terms">利用規約</a></li>'
+      .               '<li><a class="a2 d2b1b2a hb2" href="/privacy">プライバシーポリシー</a></li>'
+      .               '<li><a class="a2 d2b1b2a hb2" href="/contact">問い合わせ</a></li>'
+      .             '</ul>'
+      .           '</div>'
+      .           '<div class="d2b1b d2b1c">'
+      .             '<h5 class="d2b1b1">アクセシビリティ</h5>'
+      .             '<ul class="d2b1b2">'
+      .               '<li><a class="a2 d2b1b2a d2b1b2b hb2" role="button">カラーモード<svg height="12" viewBox="0 0 24 24" width="12"><path d="M2.484 5.699 12 15.215l9.516-9.516a1.456 1.456 0 0 1 2.058 2.057L13.029 18.301a1.455 1.455 0 0 1-2.058 0L.426 7.756a1.455 1.455 0 0 1 2.058-2.057Z" fill="currentColor"/></svg></a></li>'
+      .               '<li><a class="a2 d2b1b2a d2b1b2b hb2" role="button">視差効果<svg height="12" viewBox="0 0 24 24" width="12"><path d="M2.484 5.699 12 15.215l9.516-9.516a1.456 1.456 0 0 1 2.058 2.057L13.029 18.301a1.455 1.455 0 0 1-2.058 0L.426 7.756a1.455 1.455 0 0 1 2.058-2.057Z" fill="currentColor"/></svg></a></li>'
+      .             '</ul>'
+      .           '</div>'
+      .         '</div>'
+      .       '</nav>'
+      .     '</div>'
+      .     '<footer class="d3">'
+      .     '</footer>'
+      .     '<script src="/script.js?v=' . Config::$version . '"></script>'
+      .     ($this->client->schema ? '<script type="application/ld+json">' . json_encode($this->client->schema) . '</script>' : '')
+      .   '</body>'
+      . '</html>';
+
+    if (1024 > strlen($html)) {
+      $html = gzencode($html, 4);
+      header('content-encoding:gzip');
+    }
+
+    header('cache-control:max-age=' . (property_exists($this->client, 'cache_time') ? $this->client->cache_time . ",stale-while-revalidate=" . $this->client->cache_time : 0) . ',public,immutable,stale-if-error=86400');  // ,must-revalidate
+    if ($noindex) header('x-robots-tag:noindex');
+    header('cross-origin-embedder-policy:require-corp');
+    header('cross-origin-opener-policy:same-origin');
+    // header('expect-ct:max-age=86400,enforce');
+    header('referrer-policy:no-referrer-when-downgrade');
+
+    http_response_code(200);
+    header('content-length:' . strlen($html));
+    echo $html;
+
+    exit;
+  }
+
+  public function createStyle(): string
+  {
+    $default_css = [];
+    $all_css_text = "";
+
+    $style_ids = [
+      3,
+      ...$this->client->css,
+    ];
+
+    $name = implode(":", $style_ids);
+
+    $version = max([
+      strtotime(date("Y-m-01 00:00:00")),
+      ...array_map(fn (int $id) => filemtime(_DIR_ . "/public_html/styles/{$id}.css"), $style_ids),
+    ]);
+
+    $row = RDS::fetch("SELECT * FROM `css` WHERE `name`=? LIMIT 1;", [
+      $name,
+    ]);
+
+    if ($row && $version === $row["version"]) {
+      return ($row["id"] . $version);
+    }
+
+    $style_id = $row ? $row["id"] : RDS::insert("INSERT INTO `css` (`name`) VALUES (?);", [
+      $name,
+    ]);
+
     $style_map = [
       "global" => "",
       "min360" => "",
@@ -81,13 +231,7 @@ class HTMLDocument
       "motion" => "",
     ];
 
-    $all_css_text = "";
-    $default_css = [];
-
-    foreach ([
-      3,
-      ...$this->client->css,
-    ] as $id) {
+    foreach ($style_ids as $id) {
       $css_text = file_get_contents(_DIR_ . "/public_html/styles/{$id}.css");
 
       $block_positions = [];
@@ -216,129 +360,23 @@ class HTMLDocument
       $default_css[$index]["position"] = "" === $text ? [0, 0,] : [strpos($all_css_text, $text), strlen($text)];
     }
 
-    $html =
-      '<!DOCTYPE html>'
-      . '<html class="t1">'
-      .   '<head>'
-      .     '<meta charset="UTF-8">'
-      .     implode("", array_map(fn (int $id) => '<link as="script" crossOrigin="anonymous" href="/scripts/' . $id . '.js?v=' . Config::$version . '" rel="preload">', $this->client->js))
-      .     '<link as="style" href="/style.css?v=' . Config::$version . '" rel="preload">'
-      .     '<link as="script" href="/script.js?v=' . Config::$version . '" rel="preload">'
-      .     Json2Node::create($this->client->head)
-      .     ($noindex ? '<meta name="robots" content="noindex">' : '')
-      .     '<meta content="telephone=no" name="format-detection">'
-      .     '<meta content="width=device-width,initial-scale=1.0" name="viewport">'
-      .     '<meta content="LOSTPET.JP (迷子ペットのデータベース)" name="application-name">'
-      .     '<meta content="LOSTPET.JP (迷子ペットのデータベース)" name="apple-mobile-web-app-title">'
-      .     '<meta content="yes" name="mobile-web-app-capable">'
-      .     '<meta content="yes" name="apple-mobile-web-app-capable">'
-      .     '<meta content="#228ae6" name="apple-mobile-web-app-status-bar-style">'
-      .     '<meta content="ja_JP" property="og:locale">'
-      .     '<meta content="LOSTPET.JP (迷子ペットのデータベース)" name="og:site_name">'
-      .     '<meta content="' . _DOMAIN_ . '" name="twitter:domain">'
-      .     '<meta content="@lostpetjp" name="twitter:site">'
-      .     '<meta content="@arayutw" name="twitter:creator">'
-      .     '<meta content="summary" name="twitter:card">'
-      .     '<meta content="#228ae6" name="msapplication-TileColor">'
-      .     '<meta content="#228ae6" name="theme-color">'
-      .     '<link href="/humans.txt" rel="author">'
-      .     '<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180">'
-      .     '<link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png">'
-      .     '<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png">'
-      .     '<link href="/manifest.webmanifest" rel="manifest">'
-      .     '<link color="#228ae6" href="/safari-pinned-tab.svg" rel="mask-icon">'
-      .     '<link href="/style.css?v=' . Config::$version . '" rel="stylesheet">'
-      .     '<style>'
-      .       $all_css_text
-      .     '</style>'
-      .     '<script>'
-      .       '(function(){var t;("2"===(t=localStorage.getItem("t"))||"1"!==t&&matchMedia("(prefers-color-scheme:dark)").matches)&&document.documentElement.classList.replace("t1","t2"),("2"===(t=localStorage.getItem("r"))||"1"!==t&&matchMedia("(prefers-reduced-motion)").matches)&&document.documentElement.classList.add("r2")}());'
-      .       'self.a=' . json_encode([
-        "css" => array_map(fn (array $entry) => [
-          "id" => $entry["id"],
-          "position" => $entry["position"],
-          "type" => $entry["type"],
-        ], $default_css),
-        "document" => [
-          "template" => $this->client->template,
-          "content" => $this->client->content,
-          "pathname" => $this->client->pathname,
-          "search" => $this->client->search,
-        ],
-        "version" => 0,
-      ])
-      .     ';document.currentScript.remove()</script>'
-      .   '</head>'
-      .   '<body>'
-      .     '<header class="d1">'
-      .       '<a class="d1a" href="/">'
-      .         '<picture>'
-      .            '<source srcset="/logo.svg" media="(min-width: 480px)">'
-      .            '<img class="d1a1" src="/icon.svg">'
-      .         '</picture>'
-      .       '</a>'
-      .       '<a class="a3 d1b ht1" href="/">サイトに掲載</a>'
-      .     '</header>'
-      .     '<div class="d2">'
-      .       Json2Node::create($this->client->body)  // <main class="d2a"> ... </main>
-      .       '<nav class="d2b">'
-      .         '<div class="d2b1">'
-      .           '<h2 class="d2b1a">メニュー</h2>'
-      .           '<div class="d2b1b">'
-      .             '<h5 class="d2b1b1">検索</h5>'
-      .             '<ul class="d2b1b2">'
-      .               '<li><a class="a2 d2b1b2a hb2" href="/search/lost">迷子</a></li>'
-      .               '<li><a class="a2 d2b1b2a hb2" href="/search/find">保護</a></li>'
-      .             '</ul>'
-      .           '</div>'
-      .           '<div class="d2b1b d2b1c">'
-      .             '<h5 class="d2b1b1">お役立ち</h5>'
-      .             '<ul class="d2b1b2">'
-      .               '<li><a class="a2 d2b1b2a hb2" href="/register">サイトに掲載する</a></li>'
-      .               '<li><a class="a2 d2b1b2a hb2" href="/poster">ポスターを作成する</a></li>'
-      .             '</ul>'
-      .           '</div>'
-      .           '<div class="d2b1b d2b1c">'
-      .             '<h5 class="d2b1b1">サイト案内</h5>'
-      .             '<ul class="d2b1b2">'
-      .               '<li><a class="a2 d2b1b2a hb2" href="/terms">利用規約</a></li>'
-      .               '<li><a class="a2 d2b1b2a hb2" href="/privacy">プライバシーポリシー</a></li>'
-      .               '<li><a class="a2 d2b1b2a hb2" href="/contact">問い合わせ</a></li>'
-      .             '</ul>'
-      .           '</div>'
-      .           '<div class="d2b1b d2b1c">'
-      .             '<h5 class="d2b1b1">アクセシビリティ</h5>'
-      .             '<ul class="d2b1b2">'
-      .               '<li><a class="a2 d2b1b2a d2b1b2b hb2" role="button">カラーモード<svg height="12" viewBox="0 0 24 24" width="12"><path d="M2.484 5.699 12 15.215l9.516-9.516a1.456 1.456 0 0 1 2.058 2.057L13.029 18.301a1.455 1.455 0 0 1-2.058 0L.426 7.756a1.455 1.455 0 0 1 2.058-2.057Z" fill="currentColor"/></svg></a></li>'
-      .               '<li><a class="a2 d2b1b2a d2b1b2b hb2" role="button">視差効果<svg height="12" viewBox="0 0 24 24" width="12"><path d="M2.484 5.699 12 15.215l9.516-9.516a1.456 1.456 0 0 1 2.058 2.057L13.029 18.301a1.455 1.455 0 0 1-2.058 0L.426 7.756a1.455 1.455 0 0 1 2.058-2.057Z" fill="currentColor"/></svg></a></li>'
-      .             '</ul>'
-      .           '</div>'
-      .         '</div>'
-      .       '</nav>'
-      .     '</div>'
-      .     '<footer class="d3">'
-      .     '</footer>'
-      .     '<script src="/script.js?v=' . Config::$version . '"></script>'
-      .   '</body>'
-      . '</html>';
+    $filename = ($style_id . $version);
 
-    if (1024 > strlen($html)) {
-      $html = gzencode($html, 4);
-      header('content-encoding:gzip');
-    }
+    S3::putObject(Config::$bucket, "src/styles/bundle/{$filename}.css", [
+      "Body" => $all_css_text,
+    ]);
 
-    header('cache-control:max-age=' . (property_exists($this->client, 'cache_time') ? $this->client->cache_time . ",stale-while-revalidate=" . $this->client->cache_time : 0) . ',public,immutable,stale-if-error=86400');  // ,must-revalidate
-    if ($noindex) header('x-robots-tag:noindex');
-    header('cross-origin-embedder-policy:require-corp');
-    header('cross-origin-opener-policy:same-origin');
-    // header('expect-ct:max-age=86400,enforce');
-    header('referrer-policy:no-referrer-when-downgrade');
+    RDS::execute("UPDATE `css` SET `version`=?, `map`=? WHERE `id`=? LIMIT 1;", [
+      $version,
+      json_encode(array_map(fn (array $entry) => [
+        "id" => $entry["id"],
+        "position" => $entry["position"],
+        "type" => $entry["type"],
+      ], $default_css)),
+      $style_id,
+    ]);
 
-    http_response_code(200);
-    header('content-length:' . strlen($html));
-    echo $html;
-
-    exit;
+    return $filename;
   }
 }
 
@@ -357,6 +395,7 @@ class HTMLDocumentClient
   public array $body = [];
 
   public array $css = [];
+  public array $schema = [];
 
   public function __construct(string $content, string $pathname, int $mode)
   {
@@ -371,6 +410,7 @@ class HTMLDocumentClient
     $this->cache_time = $content::$cache_time;
     $this->pathname = $content::$pathname;
     $this->search = $content::$search;
+    $this->schema = $content::$schema;
 
     $this->head = [
       ...$this->head,
