@@ -85,10 +85,12 @@ class HTMLDocumentAdminTweetContent
       . '<h1>案件のシェア</h1>'
 
       .  '<textarea id="text" style="width:80vw;height:300px;display:block">'
-      .  implode("\n", [
+      .  implode("\n", array_filter([
+        $body["age"] ?? null,
+        in_array(($body["sex"] ?? null), [1, 2,], true) ? (["オス", "メス",][$body["sex"] - 1]) : null,
         $head["title"],
         $body["description"],
-      ])
+      ], fn ($value) => is_string($value)))
       .  '</textarea>'
 
       .  '<ul id="list" style="margin-top:24px;list-style-type:none;margin:36px 0;"></ul>'
