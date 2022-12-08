@@ -21,6 +21,8 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
 
   static public array $head = [];
 
+  static public array $schema = [];
+
   static public function create(string $pathname): array
   {
     $object = Search::parseUrl($pathname);
@@ -104,11 +106,151 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
 
     self::$head[] = [
       "attribute" => [
-        "href" => "https://" . _SERVER_ . Search::createUrl(["page" => 1,] + $object),
+        "href" => "https://" . _SERVER_ . Search::createUrl([
+          "page" => 1,
+          "sort" => 0,  // 発生順で統一する
+        ] + $object),
         "rel" => "canonical",
       ],
       "tagName" => "link",
     ];
+
+    $breadcrumb = [
+      [
+        "title" => "ホーム",
+        "pathname" => "/",
+      ],
+      [
+        "title" => "検索",
+        "pathname" => Search::createUrl([
+          "matter" => 0,
+          "animal" => 0,
+          "prefecture" => 0,
+          "sort" => $sort_id,
+          "page" => 1,
+        ]),
+      ],
+    ];
+
+    $breadcrumb_location = [
+      "matter" => 0,
+      "animal" => 0,
+      "prefecture" => 0,
+      "sort" => $sort_id,
+      "page" => 1,
+    ];
+
+    $schema_items = [
+      [
+        "@type" => "ListItem",
+        "position" => 1,
+        "name" => "ホーム",
+        "item" => "/",
+      ],
+      [
+        "@type" => "ListItem",
+        "position" => 2,
+        "name" => "検索",
+        "item" => "/search/",
+      ],
+    ];
+
+    if ($matter_id) {
+      $breadcrumb_location = [
+        "matter" => $matter_id,
+      ] + $breadcrumb_location;
+
+      $schema_items[] = [
+        "@type" => "ListItem",
+        "position" => count($schema_items) + 1,
+        "name" => ($t = Matter::$data[$matter_id]["title"]),
+        "item" => Search::createUrl($breadcrumb_location),
+      ];
+
+      $breadcrumb[] = [
+        "title" => $t,
+        "pathname" => Search::createUrl([
+          "matter" => $matter_id,
+          "animal" => 0,
+          "prefecture" => 0,
+          "sort" => $sort_id,
+          "page" => 1,
+        ]),
+      ];
+    }
+
+    if ($animal_id) {
+      $breadcrumb_location = [
+        "animal" => $animal_id,
+      ] + $breadcrumb_location;
+
+      $schema_items[] = [
+        "@type" => "ListItem",
+        "position" => count($schema_items) + 1,
+        "name" => ($t = Animal::$data[$animal_id]["title"]),
+        "item" => Search::createUrl($breadcrumb_location),
+      ];
+
+      $breadcrumb[] = [
+        "title" => $t,
+        "pathname" => Search::createUrl([
+          "matter" => 0,
+          "animal" => $animal_id,
+          "prefecture" => 0,
+          "sort" => $sort_id,
+          "page" => 1,
+        ]),
+      ];
+    }
+
+    if ($prefecture_id) {
+      $breadcrumb_location = [
+        "prefecture" => $prefecture_id,
+      ] + $breadcrumb_location;
+
+      $schema_items[] = [
+        "@type" => "ListItem",
+        "position" => count($schema_items) + 1,
+        "name" => ($t = Prefecture::$data[$prefecture_id]["title"]),
+        "item" => Search::createUrl($breadcrumb_location),
+      ];
+
+      $breadcrumb[] = [
+        "title" => $t,
+        "pathname" => Search::createUrl([
+          "matter" => 0,
+          "animal" => 0,
+          "prefecture" => $prefecture_id,
+          "sort" => $sort_id,
+          "page" => 1,
+        ]),
+      ];
+    }
+
+    if ($page_id > 1) {
+      $breadcrumb_location = [
+        "page" => $page_id,
+      ] + $breadcrumb_location;
+
+      $schema_items[] = [
+        "@type" => "ListItem",
+        "position" => count($schema_items) + 1,
+        "name" => "{$page_id}ページ",
+        "item" => Search::createUrl($breadcrumb_location),
+      ];
+    }
+
+    self::$schema[] = [
+      "@context" => "https://schema.org",
+      "@type" => "BreadcrumbList",
+      "itemListElement" => array_map(fn (array $item) => [
+        "item" => "https://lostpet.jp" . $item["item"],
+      ] + $item, $schema_items),
+    ];
+
+    if (!($sort_id || $page_id > 1)) {
+      $breadcrumb[count($breadcrumb) - 1]["here"] = true;
+    }
 
     $case_ids = CaseIndex::get($matter_id, $animal_id, $prefecture_id, $sort_id, $page_id, $version, $count);
 
@@ -165,6 +307,7 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
     }
 
     return [
+      "breadcrumb" => $breadcrumb,
       "count" => $counts,
       "items" => $items,
       "title" => "{$p}{$m}{$a} (" . number_format($count) . "件)",
