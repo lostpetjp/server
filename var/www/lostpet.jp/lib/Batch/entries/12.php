@@ -43,9 +43,9 @@ class Batch12
       $_SERVER["REQUEST_TIME"] - (7 * 86400),
     ]);
 
-    $media_data_set = RDS::fetchAll("SELECT `id`, `archive`, `status`, `updated_at` FROM `media` WHERE `id` IN (" . implode(",", array_fill(0, count($entries), "?")) . ");", [
+    $media_data_set = $entries ? RDS::fetchAll("SELECT `id`, `archive`, `status`, `updated_at` FROM `media` WHERE `id` IN (" . implode(",", array_fill(0, count($entries), "?")) . ");", [
       ...array_column($entries, "id"),
-    ]);
+    ]) : [];
 
     $update_media_ids = [];
     $delete_media_ids = [];
