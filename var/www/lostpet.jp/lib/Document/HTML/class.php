@@ -59,7 +59,7 @@ class HTMLDocument
 
     $noindex = $this->client->noindex;
 
-    $style_bundle_path = '/styles/bundle/' . $this->createStyle() . '.css?v=' . Config::$version;
+    $style_bundle_path = '/styles/bundle/' . $this->createStyle() . '.css';
 
     $html =
       '<!DOCTYPE html>'
@@ -68,7 +68,7 @@ class HTMLDocument
       .     '<meta charset="UTF-8">'
       .     implode("", array_map(fn (int $id) => '<link as="script" crossOrigin="anonymous" href="/scripts/' . $id . '.js?v=' . Config::$version . '" rel="preload">', $this->client->js))
       .     '<link as="style" href="/style.css?v=' . Config::$version . '" rel="preload">'
-      .     '<link as="style" href="' . $style_bundle_path . '" rel="preload">'
+      .     '<link as="style" href="' . $style_bundle_path . '?v=' . Config::$version . '" rel="preload">'
       .     '<link as="script" href="/script.js?v=' . Config::$version . '" rel="preload">'
       .     Json2Node::create($this->client->head)
       .     ($noindex ? '<meta name="robots" content="noindex">' : '')
@@ -94,7 +94,7 @@ class HTMLDocument
       .     '<link href="/manifest.webmanifest" rel="manifest">'
       .     '<link color="#228ae6" href="/safari-pinned-tab.svg" rel="mask-icon">'
       .     '<link href="/style.css?v=' . Config::$version . '" rel="stylesheet">'
-      .     '<link href="' . $style_bundle_path . '" rel="stylesheet">'
+      .     '<link href="' . $style_bundle_path . "?v=" . Config::$version . '" rel="stylesheet">'
       .     '<script>'
       .       '(function(){var t;("2"===(t=localStorage.getItem("t"))||"1"!==t&&matchMedia("(prefers-color-scheme:dark)").matches)&&document.documentElement.classList.replace("t1","t2"),("2"===(t=localStorage.getItem("r"))||"1"!==t&&matchMedia("(prefers-reduced-motion)").matches)&&document.documentElement.classList.add("r2")}());'
       .       'self.a=' . json_encode([
@@ -362,8 +362,10 @@ class HTMLDocument
 
     $filename = ($style_id . $version);
 
-    S3::putObject(Config::$bucket, "src/styles/bundle/{$filename}.css", [
+    S3::putObject(Config::$bucket, "dist/styles/bundle/{$filename}.css", [
       "Body" => $all_css_text,
+      "CacheControl" => "max-age=2592000,public,immutable",
+      "ContentType" => "text/css;charset=utf-8",
     ]);
 
     RDS::execute("UPDATE `css` SET `version`=?, `map`=? WHERE `id`=? LIMIT 1;", [
