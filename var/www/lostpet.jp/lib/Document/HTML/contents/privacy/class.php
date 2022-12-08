@@ -19,6 +19,8 @@ class HTMLDocumentPrivacyContent implements HTMLDocumentContentInterface
 
   static public array $js = [];
 
+  static public array $schema = [];
+
   static public string $title = "プライバシーポリシー";
   static public string $description = "LOSTPET.JP (迷子ペットのデータベース)の利用規約です。";
 
