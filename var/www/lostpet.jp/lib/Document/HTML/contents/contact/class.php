@@ -24,6 +24,8 @@ class HTMLDocumentContactContent implements HTMLDocumentContentInterface
 
   static public array $head = [];
 
+  static public array $schema = [];
+
   static public function create(string $pathname): array
   {
     self::$cache_time = 1 === _STAGE_ ? 600 : 1;
