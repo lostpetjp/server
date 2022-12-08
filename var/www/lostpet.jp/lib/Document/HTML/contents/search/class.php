@@ -75,6 +75,8 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
 
     self::$pathname = Search::createUrl($object);
 
+    Document::redirect(self::$pathname, 3600);
+
     // create title
     $p = "";
 
@@ -244,7 +246,7 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
       "@context" => "https://schema.org",
       "@type" => "BreadcrumbList",
       "itemListElement" => array_map(fn (array $item) => [
-        "item" => "https://lostpet.jp" . $item["item"],
+        "item" => "https://" . _DOMAIN_ . $item["item"],
       ] + $item, $schema_items),
     ];
 
