@@ -74,6 +74,7 @@ class JSONDocument
     $json = json_encode([
       "body" => $this->client->body,
       // "me" => [], // ユーザー情報 (TODO)
+      "version" => Config::$version,  // 現在のバージョン情報
     ]);
 
     if (1024 > strlen($json)) {
