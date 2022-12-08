@@ -35,6 +35,10 @@ class HTMLDocument
     } elseif (0 === strpos($pathname, "/search") || 0 === strpos($pathname, "/case")) {
       require __DIR__ . '/contents/search/index.php';
       $content = HTMLDocumentSearchContent::class;
+      // case
+    } elseif (preg_match("/\A\/(case\/)?([0-9]+)/", $pathname, $matches)) {
+      require __DIR__ . '/contents/case/index.php';
+      $content = HTMLDocumentCaseContent::class;
       // fallback
     } else {
       require __DIR__ . '/contents/terms/index.php';
