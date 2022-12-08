@@ -31,6 +31,25 @@ class HTMLDocumentContactContent implements HTMLDocumentContentInterface
     self::$cache_time = 1 === _STAGE_ ? 600 : 1;
     Etag::generate(_PATH_,  filemtime(__FILE__));
 
+    self::$schema[] = [
+      "@context" => "https://schema.org",
+      "@type" => "BreadcrumbList",
+      "itemListElement" => [
+        [
+          "@type" => "ListItem",
+          "position" => 1,
+          "name" => "ホーム",
+          "item" => "https://" . _DOMAIN_ . "/",
+        ],
+        [
+          "@type" => "ListItem",
+          "position" => 2,
+          "name" => self::$title,
+          "item" => "https://" . _DOMAIN_ . self::$pathname,
+        ],
+      ],
+    ];
+
     return [
       "title" => "問い合わせ",
       "description" => "LOSTPET.JP (迷子ペットのデータベース)に関するお問い合わせや報告、要望などを受け付けてます。お問い合わせの内容が公開されることはありません。",
