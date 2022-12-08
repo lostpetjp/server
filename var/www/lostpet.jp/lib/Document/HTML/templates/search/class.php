@@ -10,6 +10,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
     25,
     26,
     27,
+    31,
   ];
 
   static public array $js = [];
@@ -26,6 +27,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
     $sort_id = $info["sort"];
     $page_id = $info["page"];
 
+    $breadcrumb = $object["breadcrumb"];
     $items = $object["items"];
     $counts = $object["count"];
     $total_pages = $object["total_pages"];
@@ -33,6 +35,12 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
     $matter = $matter_id ? array_filter(Matter::$data, fn (array $entry) => $entry["search"])[$matter_id] ?? null : null;
     $animal = $animal_id ? array_filter(Animal::$data, fn (array $entry) => $entry["search"])[$animal_id] ?? null : null;
     $prefecture = $prefecture_id ? array_filter(Prefecture::$data, fn (array $entry) => $entry["search"])[$prefecture_id] ?? null : null;
+
+    $search_condition = implode("", array_map(fn (string $value) => "「{$value}」", array_filter([
+      $matter ? "<b>" . $matter["title"] . "</b>" : null,
+      $animal ? "<b>" . $animal["title"] . "</b>" : null,
+      $prefecture ? "<b>" . $prefecture["title"] . "</b>" : null,
+    ], fn (string|null $value) => is_string($value))));
 
     return [
       "attribute" => [
@@ -49,6 +57,43 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
               "class" => "c9 c25g",
             ],
             "children" => [
+              [
+                "attribute" => [
+                  "class" => "c31",
+                ],
+                "children" => array_map(fn (array $item) => [
+                  "attribute" => [
+                    "class" => "c31a",
+                  ],
+                  "children" => ($item["here"] ?? false) ? $item["title"] : [
+                    [
+                      "attribute" => [
+                        "class" => "c31a1",
+                        "href" => $item["pathname"],
+                      ],
+                      "children" => $item["title"],
+                      "tagName" => "a",
+                    ],
+                    (($item["here"] ?? false) ? null : [
+                      "attribute" => [
+                        "height" => "8",
+                        "viewBox" => "0 0 48 48",
+                        "width" => "8",
+                      ],
+                      "children" => [
+                        "attribute" => [
+                          "d" => "m13.841 48-4.282-4.282L29.277 24 9.559 4.282 13.841 0l24 24-24 24Z",
+                          "fill" =>  "currentColor",
+                        ],
+                        "tagName" => "path",
+                      ],
+                      "tagName" => "svg",
+                    ]),
+                  ],
+                  "tagName" => "li",
+                ], $breadcrumb),
+                "tagName" => "ul",
+              ],
               [
                 [
                   "attribute" => [
@@ -339,6 +384,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
                   "class" => "c25d",
                 ],
                 "children" => [
+                  ($search_condition ? $search_condition . "で絞り込み、" : ""),
                   [
                     "attribute" => [
                       "class" => "c25d1",
