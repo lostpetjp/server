@@ -103,21 +103,28 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
       $a = Animal::$data[$animal_id]["title"];
     }
 
-    self::$title = "{$p}{$m}{$a} (" . number_format($count) . "件) - 迷子ペットのデータベース";
+    self::$title = "{$p}{$m}{$a} (" . number_format($count) . "件)";
     self::$description = "{$p}{$m}{$a}は{$count}件、登録されています。些細な情報でも、知っている方は掲示板に提供をお願いします。";
 
-    self::$head[] = [
-      "attribute" => [
-        "href" => "https://" . _SERVER_ . Search::createUrl([
-          "page" => 1,
-          "sort" => 0,  // 発生順で統一する
-        ] + $object),
-        "rel" => "canonical",
+    self::$head = [
+      ...self::$head,
+      [
+        "attribute" => [
+          "href" => "https://" . _SERVER_ . Search::createUrl([
+            "page" => 1,
+            "sort" => 0,  // 発生順で統一する
+          ] + $object),
+          "rel" => "canonical",
+        ],
+        "tagName" => "link",
       ],
-      "tagName" => "link",
+      [
+        "children" => self::$title . " - 迷子ペットのデータベース",
+        "tagName" => "title",
+      ],
     ];
 
-    $breadcrumb = [
+    $breadcrumb_items = [
       [
         "title" => "ホーム",
         "pathname" => "/",
@@ -158,18 +165,16 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
     ];
 
     if ($matter_id) {
-      $breadcrumb_location = [
-        "matter" => $matter_id,
-      ] + $breadcrumb_location;
-
       $schema_items[] = [
         "@type" => "ListItem",
         "position" => count($schema_items) + 1,
         "name" => ($t = Matter::$data[$matter_id]["title"]),
-        "item" => Search::createUrl($breadcrumb_location),
+        "item" => Search::createUrl($breadcrumb_location = [
+          "matter" => $matter_id,
+        ] + $breadcrumb_location),
       ];
 
-      $breadcrumb[] = [
+      $breadcrumb_items[] = [
         "title" => $t,
         "pathname" => Search::createUrl([
           "matter" => $matter_id,
@@ -182,18 +187,16 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
     }
 
     if ($animal_id) {
-      $breadcrumb_location = [
-        "animal" => $animal_id,
-      ] + $breadcrumb_location;
-
       $schema_items[] = [
         "@type" => "ListItem",
         "position" => count($schema_items) + 1,
         "name" => ($t = Animal::$data[$animal_id]["title"]),
-        "item" => Search::createUrl($breadcrumb_location),
+        "item" => Search::createUrl($breadcrumb_location = [
+          "animal" => $animal_id,
+        ] + $breadcrumb_location),
       ];
 
-      $breadcrumb[] = [
+      $breadcrumb_items[] = [
         "title" => $t,
         "pathname" => Search::createUrl([
           "matter" => 0,
@@ -206,18 +209,16 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
     }
 
     if ($prefecture_id) {
-      $breadcrumb_location = [
-        "prefecture" => $prefecture_id,
-      ] + $breadcrumb_location;
-
       $schema_items[] = [
         "@type" => "ListItem",
         "position" => count($schema_items) + 1,
         "name" => ($t = Prefecture::$data[$prefecture_id]["title"]),
-        "item" => Search::createUrl($breadcrumb_location),
+        "item" => Search::createUrl($breadcrumb_location = [
+          "prefecture" => $prefecture_id,
+        ] + $breadcrumb_location),
       ];
 
-      $breadcrumb[] = [
+      $breadcrumb_items[] = [
         "title" => $t,
         "pathname" => Search::createUrl([
           "matter" => 0,
@@ -230,15 +231,13 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
     }
 
     if ($page_id > 1) {
-      $breadcrumb_location = [
-        "page" => $page_id,
-      ] + $breadcrumb_location;
-
       $schema_items[] = [
         "@type" => "ListItem",
         "position" => count($schema_items) + 1,
         "name" => "{$page_id}ページ",
-        "item" => Search::createUrl($breadcrumb_location),
+        "item" => Search::createUrl($breadcrumb_location = [
+          "page" => $page_id,
+        ] + $breadcrumb_location),
       ];
     }
 
@@ -251,7 +250,7 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
     ];
 
     if (!($sort_id || $page_id > 1)) {
-      $breadcrumb[count($breadcrumb) - 1]["here"] = true;
+      $breadcrumb_items[count($breadcrumb_items) - 1]["here"] = true;
     }
 
     $case_ids = CaseIndex::get($matter_id, $animal_id, $prefecture_id, $sort_id, $page_id, $version, $count);
@@ -263,39 +262,7 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
     if ($items) {
       array_multisort(array_column($items, 1 === $sort_id ? "modified_at" : "starts_at"), SORT_DESC, array_column($items, "id"), SORT_DESC, $items);
 
-      $items = array_map(fn (array $row) => [
-        "head" => json_decode($row["head"], true),
-      ] + $row, $items);
-
-      $media_ids = [];
-
-      for ($i = 0; count($items) > $i; $i++) {
-        foreach ($items[$i]["head"]["photos"] ?? [] as $photo) $media_ids = [...$media_ids, ...$photo,];
-        if (is_int($items[$i]["head"]["cover"] ?? null)) $media_ids[] = $items[$i]["head"]["cover"];
-      }
-
-      $media_ids = [...array_unique($media_ids)];
-
-      $rows = RDS::fetchAll("SELECT `id`, `name` FROM `media` WHERE `id` IN (" . implode(",", array_fill(0, ($limit = count($media_ids)), "?")) . ") AND `status`=? LIMIT {$limit};", [
-        ...$media_ids,
-        1,
-      ]);
-
-      $media_map = array_combine(array_column($rows, "id"), array_column($rows, "name"));
-
-      for ($i = 0; count($items) > $i; $i++) {
-        if (is_array($items[$i]["head"]["photos"] ?? null)) {
-          $items[$i]["head"]["photos"] = array_filter(array_map(fn (array $entry) => [
-            $media_map[$entry[0]] ?? null,
-            $media_map[$entry[1]] ?? null,
-          ], $items[$i]["head"]["photos"]), fn (array $entry) => is_string($entry[0]) && is_string($entry[1]));
-        }
-
-        if (is_int($items[$i]["head"]["cover"] ?? null)) {
-          $items[$i]["head"]["cover"] = $media_map[$items[$i]["head"]["cover"]] ?? null;
-          if (!$items[$i]["head"]["cover"]) unset($items[$i]["head"]["cover"]);
-        }
-      }
+      $items = Cases::parse($items);
     }
 
     $counts = [];
@@ -309,7 +276,7 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
     }
 
     return [
-      "breadcrumb" => $breadcrumb,
+      "breadcrumb" => $breadcrumb_items,
       "count" => $counts,
       "items" => $items,
       "title" => "{$p}{$m}{$a} (" . number_format($count) . "件)",
