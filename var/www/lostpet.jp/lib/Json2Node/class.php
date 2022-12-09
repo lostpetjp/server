@@ -74,4 +74,60 @@ class Json2Node
       'source',
     ], true) ? "" : ($content . '</' . $tag_name . '>'));
   }
+
+  static public function autolink(string $str)
+  {
+    $check_str = $str;
+    $offset = 0;
+    $entries = [];
+    $try_count = 0;
+
+    while (20 > ++$try_count) {
+      if (!preg_match("/((https?):\/\/)?([a-z0-9-]+\.)?[a-z0-9-]+(\.[a-z]{2,6}){1,3}(\/[a-z0-9.,_\/~#&=;%+?-]*)?/is", $check_str, $matches)) {
+        break;
+      }
+
+      $url = $matches[0];
+      $start = strpos($str, $url, $offset);
+      $length = strlen($url);
+
+      $entries[] = [$start, $length, substr($str, $start, $length)];
+
+      $offset = $start + $length;
+      $check_str = substr($str, $offset);
+    }
+
+    $nodes = [];
+    $current = 0;
+
+    foreach ($entries as $entry) {
+      $start = $entry[0];
+      $length = $entry[1];
+      $url = substr($str, $start, $length);
+
+      if ($start > $current) {
+        $nodes[] = substr($str, $current, $start - $current);
+      }
+
+      $is_samesite = strpos(parse_url($url, PHP_URL_HOST), _DOMAIN_);
+
+      $nodes[] = [
+        "attribute" => [
+          "class" => "a1",
+          "href" => $url,
+        ] + (!$is_samesite ? [
+          "target" => "_blank",
+          "rel" => "external nofollow noopener",
+        ] : []),
+        "children" => $url,
+        "tagName" => "a",
+      ];
+
+      $current = $start + $length;
+    }
+
+    $nodes[] = substr($str, $current);
+
+    return $nodes;
+  }
 }
