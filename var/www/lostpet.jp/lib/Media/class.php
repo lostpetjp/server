@@ -18,7 +18,7 @@ class Media
 
   static public function parse(string $name): ?array
   {
-    if (preg_match("/\Am([0-9]+)s([0-9]+)x([0-9]+)z\.(jpg|png)\z/", $name, $matches)) {
+    if (preg_match("/\Am([0-9]+)s([0-9]+)x([0-9]+)z\.(jpg|png|mp4|mov)\z/", $name, $matches)) {
       $id = (int)$matches[1];
       $height = (int)$matches[3];
       $width = (int)$matches[2];
