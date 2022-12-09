@@ -225,6 +225,7 @@ class HTMLDocument
       "min1280" => "",
       "max359" => "",
       "max479" => "",
+      "max599" => "",
       "max767" => "",
       "max1023" => "",
       "max1119" => "",
@@ -250,6 +251,7 @@ class HTMLDocument
         "@media screen and (min-width:1280px){",
         "@media screen and (max-width:359px){",
         "@media screen and (max-width:479px){",
+        "@media screen and (max-width:599px){",
         "@media screen and (max-width:767px){",
         "@media screen and (max-width:1023px){",
         "@media screen and (max-width:1119px){",
@@ -344,6 +346,7 @@ class HTMLDocument
       "min1280",
       "max359",
       "max479",
+      "max599",
       "max767",
       "max1023",
       "max1119",
@@ -412,7 +415,6 @@ class HTMLDocumentClient
     ];
 
     $this->body = $content::create($pathname);
-
     $this->cache_time = $content::$cache_time;
     $this->pathname = $content::$pathname;
     $this->search = $content::$search;
