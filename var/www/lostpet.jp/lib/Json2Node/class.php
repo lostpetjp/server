@@ -83,7 +83,7 @@ class Json2Node
     $try_count = 0;
 
     while (20 > ++$try_count) {
-      if (!preg_match("/((https?):\/\/)?([a-z0-9-]+\.)?[a-z0-9-]+(\.[a-z]{2,6}){1,3}(\/[a-z0-9.,_\/~#&=;%+?-]*)?/is", $check_str, $matches)) {
+      if (!preg_match("/((https?):\/\/)([a-z0-9-]+\.)?[a-z0-9-]+(\.[a-z]{2,6}){1,3}(\/[a-z0-9.,_\/~#&=;%+?-]*)?/is", $check_str, $matches)) {
         break;
       }
 
