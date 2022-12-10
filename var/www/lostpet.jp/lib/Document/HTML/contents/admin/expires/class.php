@@ -6,7 +6,7 @@ class HTMLDocumentAdminExpiresContent
 {
   static public function create()
   {
-    $rows = RDS::fetchAll("SELECT * FROM `case` WHERE `expires_at`>0 AND `publish`=1 AND `status`=1;");
+    $rows = RDS::fetchAll("SELECT * FROM `case` WHERE `expires_at`>0;");
 
     echo '<!DOCTYPE html>'
       . '<html>'
