@@ -89,16 +89,6 @@ class Queue8
 
             // SES::send(to: $email_decode, title: $title, body: $body);  // TODO
             SES::send(to: "info@lostpet.jp", title: $title, body: $body);
-
-            // 犯罪を防ぐために、一定期間ログを残す
-            Log::create("/email/comment/{$case_id}/{$id}-" . ($index++) . ".json.gz", [
-              "body" => $body,
-              "created_at" => $_SERVER["REQUEST_TIME"],
-              "ip" => Encode::encode("/ip/salt.txt", _IP_),
-              "title" => $title,
-              "to" => $email_encode,
-              "ua" => Encode::encode("/ua/salt.txt", _UA_),
-            ]);
           }
         }
       } else {
