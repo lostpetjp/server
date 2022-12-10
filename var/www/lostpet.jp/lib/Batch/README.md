@@ -33,6 +33,7 @@
 | 12 | media (`archive=1`)。 | 
 | 13 | media (`archive=2`) |  
 | 14 | comment (`archive=1`) | 
+| 15 | clean up (`session`) | 
 
 ## Table
 | ID | 説明 |
