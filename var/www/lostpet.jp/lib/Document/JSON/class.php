@@ -57,6 +57,9 @@ class JSONDocument
         if ("/api/private/recaptcha" === _PATH_) {
           require __DIR__ . "/contents/recaptcha/index.php";
           $content = JSONDocumentRecaptcha::class;
+        } elseif ("/api/private/session" === _PATH_) {
+          require __DIR__ . "/contents/session/index.php";
+          $content = JSONDocumentSession::class;
         }
       }
     }
@@ -73,9 +76,9 @@ class JSONDocument
 
     $json = json_encode([
       "body" => $this->client->body,
-      // "me" => [], // ユーザー情報 (TODO)
+    ] + (3 === _REQUEST_ ? [
       "version" => Config::$version,  // 現在のバージョン情報
-    ]);
+    ] : []));
 
     if (1024 > strlen($json)) {
       $json = gzencode($json, 4);
