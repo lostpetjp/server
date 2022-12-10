@@ -43,6 +43,15 @@ class SES
           'Source' => $from ? $from : "no-reply@" . _DOMAIN_,
         ]);
 
+        // 犯罪を防ぐために、一定期間ログを残す
+        $email_encode = Encode::encode("/email/salt.txt", $to);
+
+        Log::create("email/{$email_encode}", $_SERVER["REQUEST_TIME"], [
+          "body" => $body,
+          "title" => $title,
+          "email" => $email_encode,
+        ]);
+
         return isset($response["@metadata"]["statusCode"]) && $response["@metadata"]["statusCode"] === 200 ? true : Document::error(500);
       } catch (Aws\Exception\AwsException $e) {
         new Discord("error", [
