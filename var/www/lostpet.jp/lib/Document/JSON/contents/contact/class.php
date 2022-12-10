@@ -12,6 +12,8 @@ class JSONDocumentContact
       Document::error(400);
     }
 
+    Session::create();
+
     $title = $_POST["title"] ?? null;
     $email_decode = $_POST["email"] ?? null;
     $description = $_POST["description"] ?? null;
@@ -57,13 +59,11 @@ class JSONDocumentContact
         ]) . "\n```\n" . Config::$admin . "/contact/{$id}",
       ]);
 
-      S3::putObject(Config::$bucket, "logs/contact/{$id}.json.gz", [
-        "Body" => gzencode(json_encode($update_data + [
-          "description" => $description,
-          "email" => Encode::encode("/email/salt.txt", $email_decode),
-          "ip" => Encode::encode("/ip/salt.txt", _IP_),
-          "ua" => Encode::encode("/ua/salt.txt", _UA_),
-        ]), 9),
+      Session::createRelation(3, $id);
+
+      Log::create("contact", $id, [
+        "description" => $description,
+        "email" => Encode::encode("/email/salt.txt", $email_decode),
       ]);
     }
 
