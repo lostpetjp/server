@@ -6,9 +6,19 @@ class HTMLDocumentAdminContactContent
 {
   static public function create(int $id)
   {
-    $body = S3::getObjectBody(Config::$bucket, "logs/contact/{$id}.json.gz");
+    $row = DynamoDB::getItem([
+      "TableName" => "ksvs",
+      "Key" => [
+        "sort" => "contact",
+        "key"   => (string)$id,
+      ],
+      "ProjectionExpression"     => "#value",
+      "ExpressionAttributeNames" => [
+        "#value" => "value",
+      ],
+    ]);
 
-    $data = json_decode(gzdecode($body), true);
+    $data = json_decode($row["value"], true);
 
     $data["created_at"] = date("Y-m-d H:i:s", $data["created_at"]);
     $email = Encode::decode("/email/salt.txt", $data["email"]);
