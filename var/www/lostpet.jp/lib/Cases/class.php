@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 class Cases
 {
-  static public function parse(array $items)
+  static public function getMediaIds(array $items): array
   {
     $items = array_map(fn (array $row) => [
       "body" => is_string($row["body"] ?? null) ? json_decode($row["body"], true) : null,
@@ -20,14 +20,26 @@ class Cases
       if (is_int($items[$i]["body"]["opengraph"] ?? null)) $media_ids[] = $items[$i]["body"]["opengraph"];
     }
 
-    $media_ids = [...array_unique($media_ids)];
+    return [...array_unique($media_ids)];
+  }
 
-    $rows = RDS::fetchAll("SELECT `id`, `name` FROM `media` WHERE `id` IN (" . implode(",", array_fill(0, ($limit = count($media_ids)), "?")) . ") AND `status`=? LIMIT {$limit};", [
-      ...$media_ids,
-      1,
-    ]);
+  static public function parse(array $items, ?array $media_map = null)
+  {
+    $items = array_map(fn (array $row) => [
+      "body" => is_string($row["body"] ?? null) ? json_decode($row["body"], true) : null,
+      "head" => is_string($row["head"] ?? null) ? json_decode($row["head"], true) : null,
+    ] + $row, $items);
 
-    $media_map = array_combine(array_column($rows, "id"), array_column($rows, "name"));
+    if (null === $media_map) {
+      $media_ids = self::getMediaIds($items);
+
+      $rows = $media_ids ? RDS::fetchAll("SELECT `id`, `name` FROM `media` WHERE `id` IN (" . implode(",", array_fill(0, ($limit = count($media_ids)), "?")) . ") AND `status`=? LIMIT {$limit};", [
+        ...$media_ids,
+        1,
+      ]) : [];
+
+      $media_map = array_combine(array_column($rows, "id"), array_column($rows, "name"));
+    }
 
     for ($i = 0; count($items) > $i; $i++) {
       if (is_array($items[$i]["head"]["photos"] ?? null)) {
