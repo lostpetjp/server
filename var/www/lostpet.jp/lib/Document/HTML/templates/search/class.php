@@ -421,7 +421,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
             "attribute" => [
               "class" => "c25f c26",
             ],
-            "children" => array_map(fn (array $item) => self::createItem($item), $object["items"]),
+            "children" => array_map(fn (array $item) => Cases::createCard($item), $object["items"]),
             "tagName" => "div",
           ],
           self::createPager($page_id,  $total_pages, fn (int $page) => Search::createUrl([
@@ -433,126 +433,6 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
         "tagName" => "article",
       ],
       "tagName" => "main",
-    ];
-  }
-
-  static private function createItem(array $item): array
-  {
-    $matter_id = $item["matter"];
-    $matter = Matter::$data[$matter_id];
-    $animal_id = $item["animal"];
-    $animal = Animal::$data[$animal_id];
-    $prefecture_id = $item["prefecture"];
-    $prefecture = Prefecture::$data[$prefecture_id];
-
-    $head = $item["head"];
-    $name = $head["cover"] ?? null;
-    $info = $name ? Media::parse($name) : null;
-    if ($info) $name = $info["prefix"] . "-w600a43" . $info["suffix"];
-
-    return [
-      "attribute" => [
-        "class" => "c26i",
-        "href" => "/" . $item["id"],
-      ],
-      "children" => [
-        "attribute" => [
-          "class" => "c26a",
-        ],
-        "children" => [
-          [
-            "attribute" => [
-              "class" => "o26a1",
-            ],
-            "children" => [
-              [
-                "attribute" => [
-                  "class" => "o26a1a",
-                ],
-                "children" => [
-                  $head["title"],
-                ],
-                "tagName" => "h2",
-              ],
-              [
-                "attribute" => [
-                  "class" => "o26a1d",
-                ],
-                "children" => (1 === $matter_id ? (isset($head["pet"]) ? $head["pet"] : "名無し") : (99 === $animal_id ? "その他" : $animal["title"])),
-                "tagName" => "div",
-              ],
-              [
-                "attribute" => [
-                  "class" => "o26a1b l" . $matter_id,
-                ],
-                "children" => $matter["title"],
-                "tagName" => "div",
-              ],
-              [
-                "attribute" => [
-                  "class" => "o26a1c",
-                ],
-                "children" => [
-                  ...($info ? [
-                    [
-                      "attribute" => [
-                        "srcset" => "/media/{$name}.avif",
-                        "type" => "image/avif",
-                      ],
-                      "tagName" => "source",
-                    ],
-                    [
-                      "attribute" => [
-                        "srcset" => "/media/{$name}.webp",
-                        "type" => "image/webp",
-                      ],
-                      "tagName" => "source",
-                    ],
-                  ] : []),
-                  [
-                    "attribute" => [
-                      "class" => "c26g",
-                      "decoding" => "async",
-                      "height" => "450",
-                      "loading" => "lazy",
-                      "src" => $info ? "/media/{$name}" : "/noimage.svg",
-                      "width" => "600",
-                    ],
-                    "tagName" => "img",
-                  ],
-                ],
-                "tagName" => "picture",
-              ],
-            ],
-            "tagName" => "header",
-          ],
-          [
-            "attribute" => [
-              "class" => "o26a2" . ($item["created_at"] > ($_SERVER["REQUEST_TIME"] - 172800) ? " o26a2n" : ""),
-            ],
-            "children" => [
-              [
-                "attribute" => [
-                  // "class" => "o3a2a",
-                ],
-                "tagName" => "div",
-                "children" => $prefecture["title"] . " " . $head["location"],
-              ],
-              [
-                "attribute" => [
-                  "class" => "o26a2b",
-                  "datetime" => date(DATE_ISO8601, $item["starts_at"]),
-                ],
-                "tagName" => "time",
-                "children" => date("Y/m/d", $item["starts_at"]),
-              ],
-            ],
-            "tagName" => "section",
-          ],
-        ],
-        "tagName" => "article",
-      ],
-      "tagName" => "a",
     ];
   }
 
