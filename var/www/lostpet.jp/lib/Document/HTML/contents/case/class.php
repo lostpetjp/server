@@ -43,7 +43,7 @@ class HTMLDocumentCaseContent implements HTMLDocumentContentInterface
 
     Document::redirect(self::$pathname, 3600);
 
-    $case_data = RDS::fetch("SELECT * FROM `case` WHERE `id`=? LIMIT 1;", [
+    $case_data = RDS::fetch("SELECT `id`, `status`, `publish`, `matter`, `animal`, `prefecture`, `created_at`, `updated_at`, `modified_at`, `starts_at`, `ends_at`, `expires_at`, `head`, `body`, `archive`, `email` IS NOT NULL as `email` FROM `case` WHERE `id`=? LIMIT 1;", [
       $case_id,
     ]);
     if (!$case_data) Document::redirect("/search/?status=404", 600); // 存在しない記事の場合
@@ -51,8 +51,110 @@ class HTMLDocumentCaseContent implements HTMLDocumentContentInterface
 
     // Etag::generate(_PATH_, max(filemtime(__FILE__), $case_data["updated_at"]));
 
+    $expires_at = $case_data["expires_at"] ?? null;
+    $expires_soon = $expires_at && (($_SERVER["REQUEST_TIME"] + (7 * 86400)) > $expires_at);
+    $publish = $case_data["publish"];
 
-    [$case_data,] = Cases::parse([$case_data,]);
+    $comment_data_set = $publish ? RDS::fetchAll("SELECT `id`, `body`, `head`, `status`, `private`, `case`, `parent`, `created_at`, `updated_at`, `verified` FROM `comment` WHERE `case`=? AND `status`=?;", [
+      $case_id,
+      1,
+    ]) : [];
+
+    if (!$publish) {
+      $case_data["body"] = json_decode($case_data["body"], true);
+      if (is_array($case_data["body"]["photos"] ?? null)) unset($case_data["body"]["photos"]);
+      if (is_array($case_data["body"]["videos"] ?? null)) unset($case_data["body"]["videos"]);
+    }
+
+    // for pickup
+    $pk_ids = [];
+    $pk_data = [
+      [], // new arivals
+      [], // random
+    ];
+
+    // new arivals
+    $pk_ids1 = RDS::fetchColumn("SELECT `index` FROM `case-index` WHERE `matter`=? AND `animal`=? AND `prefecture`=? AND `sort`=? AND `page`=? LIMIT 1;", [
+      1 === $case_data["matter"] ? 2 : 1,
+      $case_data["animal"],
+      0,
+      1,
+      1,
+    ]);
+    if ($pk_ids1 && is_string($pk_ids1)) $pk_ids1 = json_decode($pk_ids1, true);
+    if (!$pk_ids1) $pk_ids1 = CaseIndex::get(1 === $case_data["matter"] ? 2 : 1, $case_data["animal"], 0, 1, 1, $_SERVER["REQUEST_TIME"], null);
+    $pk_ids1 = array_slice($pk_ids1, 0, 24);
+
+    // random
+    $max_case_id = CaseCount::get(0, 0, 0);
+    $pk_ids2 = [];
+
+    while (48 > count($pk_ids2)) {
+      $id = rand(1, $max_case_id);
+
+      if ($id !== $case_id && !in_array($id, $pk_ids1, true)) {
+        $pk_ids2[] = $id;
+      }
+    }
+
+    $pk_ids = [...array_unique([...$pk_ids1, ...$pk_ids2,]),];
+
+    $pk_data_set = $pk_ids ? RDS::fetchAll("SELECT `id`, `matter`, `animal`, `prefecture`, `created_at`, `modified_at`, `starts_at`, `expires_at`, `head` FROM `case` WHERE `id` IN (" . implode(",", array_fill(0, ($limit = count($pk_ids)), "?")) . ") LIMIT {$limit};", [
+      ...$pk_ids,
+    ]) : [];
+
+    $media_ids = [...array_unique([
+      ...Cases::getMediaIds($pk_data_set),
+      ...Cases::getMediaIds([$case_data,]),
+      ...Comment::getMediaIds($comment_data_set),
+    ])];
+
+    $rows = $media_ids ? RDS::fetchAll("SELECT `id`, `name` FROM `media` WHERE `id` IN (" . implode(",", array_fill(0, ($limit = count($media_ids)), "?")) . ") AND `status`=? LIMIT {$limit};", [
+      ...$media_ids,
+      1,
+    ]) : [];
+
+    $media_map = array_combine(array_column($rows, "id"), array_column($rows, "name"));
+
+    [$case_data,] = Cases::parse([$case_data,], $media_map);
+    $pk_data_set = Cases::parse($pk_data_set, $media_map);
+
+    $pk_data_map = array_combine(array_column($pk_data_set, "id"), $pk_data_set);
+
+    foreach ($pk_ids1 as $id) {
+      if ($pk_data_map[$id] ?? null) {
+        $pk_data[0][] = $pk_data_map[$id];
+      }
+    }
+
+    foreach ($pk_ids2 as $id) {
+      if ($pk_data_map[$id] ?? null) $pk_data[1][] = $pk_data_map[$id];
+      if (count($pk_data[1]) >= 24) break;
+    }
+
+    $comment_data_set = Comment::parse($comment_data_set, $media_map);
+
+    $comment_has_video = false;
+
+    for ($i = 0; count($comment_data_set) > $i; $i++) {
+      if ($comment_data_set[$i]["private"]) {
+        unset($comment_data_set[$i]["body"]);
+      } else {
+        if ($comment_data_set[$i]["body"]["videos"] ?? null) $comment_has_video = true;
+      }
+    }
+
+    array_multisort(array_column($comment_data_set, "updated_at"), SORT_DESC, $comment_data_set);
+
+    // 掲載終了中
+    if ($publish) self::$css[] = 42;
+    if (!$publish || $expires_soon) self::$css[] = 32;
+    if ((!$publish && ($case_data["head"]["cover"] ?? null)) || ($case_data["body"]["photos"] ?? null)) self::$css[] = 43;
+    if ($comment_has_video || ($case_data["body"]["videos"] ?? null)) self::$css[] = 44;
+
+    // for comment
+    $has_email = $case_data["email"];
+    if ($has_email) self::$css[] = 39;
 
     // for opengraph
     $opengraph = $case_data["body"]["opengraph"] ?? null;
@@ -228,8 +330,10 @@ class HTMLDocumentCaseContent implements HTMLDocumentContentInterface
     ];
 
     return [
+      "comment" => $comment_data_set,
       "data" => $case_data,
       "breadcrumb" => $breadcrumb_items,
+      "pickup" => $pk_data,
     ];
   }
 }
