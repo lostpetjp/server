@@ -83,7 +83,7 @@ class Json2Node
     $try_count = 0;
 
     while (20 > ++$try_count) {
-      if (!preg_match("/((https?):\/\/)([a-z0-9-]+\.)?[a-z0-9-]+(\.[a-z]{2,6}){1,3}(\/[a-z0-9.,_\/~#&=;%+?-]*)?/is", $check_str, $matches)) {
+      if (!preg_match("/((https?):\/\/)([a-z0-9-]+\.)?[a-z0-9-]+(\.[a-z]{2,6}){1,3}(\/[a-z0-9.,_\/~#&=;@%+?-]*)?/is", $check_str, $matches)) {
         break;
       }
 
@@ -109,7 +109,8 @@ class Json2Node
         $nodes[] = substr($str, $current, $start - $current);
       }
 
-      $is_samesite = strpos(parse_url($url, PHP_URL_HOST), _DOMAIN_);
+      $info = parse_url($url);
+      $is_samesite = strpos($info["host"], _DOMAIN_);
 
       $nodes[] = [
         "attribute" => [
@@ -119,7 +120,7 @@ class Json2Node
           "target" => "_blank",
           "rel" => "external nofollow noopener",
         ] : []),
-        "children" => $url,
+        "children" => $info["scheme"] . "://" . $info["host"] . (strlen($info["path"]) > 21 ? substr($info["path"], 0, 20) . "..." : $info["path"]),
         "tagName" => "a",
       ];
 
