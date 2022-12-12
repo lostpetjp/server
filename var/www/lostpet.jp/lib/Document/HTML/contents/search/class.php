@@ -262,6 +262,15 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
     if ($items) {
       array_multisort(array_column($items, 1 === $sort_id ? "modified_at" : "starts_at"), SORT_DESC, array_column($items, "id"), SORT_DESC, $items);
 
+      $items = array_map(function (array $item) {
+        $item["head"] = json_decode($item["head"], true);
+        if (is_array($item["head"]["photos"] ?? null)) unset($item["head"]["photos"]);
+
+        return [
+          "head" => $item["head"],
+        ] + $item;
+      }, $items);
+
       $items = Cases::parse($items);
     }
 
