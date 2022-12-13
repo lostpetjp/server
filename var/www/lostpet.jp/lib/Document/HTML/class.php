@@ -507,6 +507,7 @@ class HTMLDocumentClient
           && (
             ("link" === $entry["tagName"] && $entry["attribute"]["rel"] === $default_entry["attribute"]["rel"])
             || ("meta" === $entry["tagName"] && $entry["attribute"]["property"] === $default_entry["attribute"]["property"])
+            || ("title" === $entry["tagName"])
           )
         ) {
           $this->head[$index] = $entry;
