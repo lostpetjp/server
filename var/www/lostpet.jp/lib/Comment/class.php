@@ -7,8 +7,8 @@ class Comment
   static public function getMediaIds(array $items): array
   {
     $items = array_map(fn (array $row) => [
-      "body" => is_string($row["body"] ?? null) ? json_decode($row["body"], true) : null,
-      // "head" => is_string($row["head"] ?? null) ? json_decode($row["head"], true) : null,
+      "body" => is_string($row["body"] ?? null) ? json_decode($row["body"], true) : (is_array($row["body"] ?? null) ? $row["body"] : null),
+      "head" => is_string($row["head"] ?? null) ? json_decode($row["head"], true) : (is_array($row["head"] ?? null) ? $row["head"] : null),
     ] + $row, $items);
 
     $media_ids = [];
@@ -23,11 +23,6 @@ class Comment
 
   static public function parse(array $items, ?array $media_map = null)
   {
-    $items = array_map(fn (array $row) => [
-      "body" => is_string($row["body"] ?? null) ? json_decode($row["body"], true) : null,
-      "head" => is_string($row["head"] ?? null) ? json_decode($row["head"], true) : null,
-    ] + $row, $items);
-
     if (null === $media_map) {
       $media_ids = self::getMediaIds($items);
 
@@ -38,6 +33,11 @@ class Comment
 
       $media_map = array_combine(array_column($rows, "id"), array_column($rows, "name"));
     }
+
+    $items = array_map(fn (array $row) => [
+      "body" => is_string($row["body"] ?? null) ? json_decode($row["body"], true) : (is_array($row["body"] ?? null) ? $row["body"] : null),
+      "head" => is_string($row["head"] ?? null) ? json_decode($row["head"], true) : (is_array($row["head"] ?? null) ? $row["head"] : null),
+    ] + $row, $items);
 
     for ($i = 0; count($items) > $i; $i++) {
       if (is_array($items[$i]["body"]["photos"] ?? null)) {
