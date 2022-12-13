@@ -46,11 +46,28 @@ class HTMLDocumentCaseContent implements HTMLDocumentContentInterface
     $case_data = RDS::fetch("SELECT `id`, `status`, `publish`, `matter`, `animal`, `prefecture`, `created_at`, `updated_at`, `modified_at`, `starts_at`, `ends_at`, `expires_at`, `head`, `body`, `archive`, `email` IS NOT NULL as `email` FROM `case` WHERE `id`=? LIMIT 1;", [
       $case_id,
     ]);
-    if (!$case_data) Document::redirect("/search/?status=404", 600); // 存在しない記事の場合
-    if (0 === $case_data["status"]) Document::redirect("/search/?status=404", 86400); // 削除された記事の場合
+
+    // for HTML
+    if (1 === _REQUEST_) {
+      if (!$case_data) Document::redirect("/search/?status=404", 600); // 存在しない記事の場合
+      if (0 === $case_data["status"]) Document::redirect("/search/?status=404", 86400); // 削除された記事の場合
+
+      // for JSON
+    } else {
+      if (!$case_data || 0 === $case_data["status"]) {
+        return [
+          "status" => false,
+        ];
+      }
+    }
 
     // Etag::generate(_PATH_, max(filemtime(__FILE__), $case_data["updated_at"]));
 
+    $matter_id = $case_data["matter"];
+    $animal_id = $case_data["animal"];
+    $animal_title = 99 === $animal_id ? null : Animal::$data[$animal_id]["title"];
+    $prefecture_id = $case_data["prefecture"];
+    $starts_at = $case_data["starts_at"];
     $expires_at = $case_data["expires_at"] ?? null;
     $expires_soon = $expires_at && (($_SERVER["REQUEST_TIME"] + (7 * 86400)) > $expires_at);
     $publish = $case_data["publish"];
@@ -145,6 +162,53 @@ class HTMLDocumentCaseContent implements HTMLDocumentContentInterface
     }
 
     array_multisort(array_column($comment_data_set, "updated_at"), SORT_DESC, $comment_data_set);
+
+    $head = $case_data["head"];
+    $pet = $head["pet"] ?? null;
+
+    $description = date("Y年n月j日", $starts_at) . "(" . ["日", "月", "火", "水", "木", "金", "土",][date("w", $starts_at)] . ")、" . Prefecture::$data[$prefecture_id]["title"] . $head["location"] . "で";
+
+    if (1 === $matter_id) {
+      $description .= "迷子になった";
+
+      if ($animal_title && $pet) {
+        $description .= "{$animal_title}の{$pet}ちゃん";
+      } elseif ($animal_title) {
+        $description .= "{$animal_title}";
+      } elseif ($pet) {
+        $description .= " {$pet}ちゃん ";
+      } else {
+        $description .= "ペット";
+      }
+
+      $description .= "を探しています。保護、目撃、似た動物を飼っている方はご連絡下さい。";
+    } elseif (2 === $matter_id) {
+      if ($animal_title) {
+        $description .= $animal_title;
+      } else {
+        $description .= "ペット";
+      }
+
+      $description .= "が保護されました。飼い主に心当たりがある方は情報提供をお願いします。";
+    } elseif (3 === $matter_id) {
+      if ($animal_title) {
+        $description .= $animal_title;
+      } else {
+        $description .= "ペット";
+      }
+
+      $description .= "が目撃されました。飼い主に心当たりがある方は情報提供をお願いします。";
+    } elseif (4 === $matter_id) {
+      if ($animal_title) {
+        $description .= $animal_title;
+      } else {
+        $description .= "ペット";
+      }
+
+      $description .= "のご遺体が発見されました。飼い主に心当たりがある方は情報提供をお願いします。";
+    }
+
+    self::$description = $description;
 
     // 掲載終了中
     if ($publish) self::$css[] = 42;
@@ -334,6 +398,7 @@ class HTMLDocumentCaseContent implements HTMLDocumentContentInterface
       "data" => $case_data,
       "breadcrumb" => $breadcrumb_items,
       "pickup" => $pk_data,
+      "status" => true,
     ];
   }
 }
