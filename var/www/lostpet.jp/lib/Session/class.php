@@ -48,7 +48,7 @@ class Session
       setcookie($name, $_COOKIE[$name], [
         "expires" => 1,
         "httponly" => true,
-        "path" => "/",
+        "path" => "/api/private/",
         "secure" => true,
         "samesite" => "Lax",
       ]);
@@ -93,7 +93,7 @@ class Session
                   setcookie($name, $_COOKIE[$name], [
                     "expires" => ((2 * 86400) + $_SERVER["REQUEST_TIME"]),
                     "httponly" => true,
-                    "path" => "/",
+                    "path" => "/api/private/",
                     "secure" => true,
                     "samesite" => "Lax",
                   ]);
