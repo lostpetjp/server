@@ -103,7 +103,7 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
       $a = Animal::$data[$animal_id]["title"];
     }
 
-    self::$title = "{$p}{$m}{$a} (" . number_format($count) . "件)";
+    self::$title = "{$p}{$m}{$a}(" . number_format($count) . "件)";
     self::$description = "{$p}{$m}{$a}は{$count}件、登録されています。些細な情報でも、知っている方は掲示板に提供をお願いします。";
 
     self::$head = [
@@ -278,7 +278,7 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
       "breadcrumb" => $breadcrumb_items,
       "count" => $counts,
       "items" => $items,
-      "title" => "{$p}{$m}{$a} (" . number_format($count) . "件)",
+      "title" => "{$p}{$m}{$a}(" . number_format($count) . "件)",
       "total_pages" => $total_pages,
     ];
   }
