@@ -8,8 +8,6 @@ class JSONDocumentDocument
 
   static public function create()
   {
-    $search = $_GET["search"];  // TODO:
-
     $html = HTMLDocument::getClient($_GET["pathname"], 2);
 
     return [
