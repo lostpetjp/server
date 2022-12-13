@@ -82,8 +82,9 @@ if (2 === _STAGE_) {
 
 $is_test = (2 === _STAGE_ && _PATH_ === "/test");
 
-if (3 === _REQUEST_ || $is_test) {
+if (3 === _REQUEST_) {
   session_cache_limiter("");
+  session_set_cookie_params(600, "/api/private/");
   session_start();
 }
 
