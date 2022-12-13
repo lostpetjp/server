@@ -534,7 +534,7 @@ class HTMLDocumentClient
 
     $this->css = [...array_unique([
       ...$template::$css,
-      ...$content::$css,
+      ...$content::$css,  // require content after template
     ])];
 
     $this->js = [...array_unique([
