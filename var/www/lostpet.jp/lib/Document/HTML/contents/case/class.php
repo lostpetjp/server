@@ -14,10 +14,9 @@ class HTMLDocumentCaseContent implements HTMLDocumentContentInterface
   static public string $search = "";
 
   static public array $css = [];
-
   static public array $js = [];
-
   static public array $schema = [];
+  static public array $data = [];
 
   static public string $title = "";
   static public string $description = "";
@@ -72,7 +71,7 @@ class HTMLDocumentCaseContent implements HTMLDocumentContentInterface
     $expires_soon = $expires_at && (($_SERVER["REQUEST_TIME"] + (7 * 86400)) > $expires_at);
     $publish = $case_data["publish"];
 
-    $comment_data_set = $publish ? RDS::fetchAll("SELECT `id`, `body`, `head`, `status`, `private`, `case`, `parent`, `created_at`, `updated_at`, `verified` FROM `comment` WHERE `case`=? AND `status`=?;", [
+    $cm_data_set = $publish ? RDS::fetchAll("SELECT `id`, `body`, `head`, `status`, `private`, `case`, `parent`, `created_at`, `updated_at`, `verified` FROM `comment` WHERE `case`=? AND `status`=?;", [
       $case_id,
       1,
     ]) : [];
@@ -106,7 +105,7 @@ class HTMLDocumentCaseContent implements HTMLDocumentContentInterface
     $max_case_id = CaseCount::get(0, 0, 0);
     $pk_ids2 = [];
 
-    while (48 > count($pk_ids2)) {
+    while (96 > count($pk_ids2)) {
       $id = rand(1, $max_case_id);
 
       if ($id !== $case_id && !in_array($id, $pk_ids1, true)) {
@@ -116,14 +115,16 @@ class HTMLDocumentCaseContent implements HTMLDocumentContentInterface
 
     $pk_ids = [...array_unique([...$pk_ids1, ...$pk_ids2,]),];
 
-    $pk_data_set = $pk_ids ? RDS::fetchAll("SELECT `id`, `matter`, `animal`, `prefecture`, `created_at`, `modified_at`, `starts_at`, `expires_at`, `head` FROM `case` WHERE `id` IN (" . implode(",", array_fill(0, ($limit = count($pk_ids)), "?")) . ") LIMIT {$limit};", [
+    $pk_data_set = $pk_ids ? RDS::fetchAll("SELECT `id`, `matter`, `animal`, `prefecture`, `created_at`, `modified_at`, `starts_at`, `expires_at`, `head` FROM `case` WHERE `id` IN (" . implode(",", array_fill(0, ($limit = count($pk_ids)), "?")) . ") AND `publish`=? AND `status`=? LIMIT {$limit};", [
       ...$pk_ids,
+      1,
+      1,
     ]) : [];
 
     $media_ids = [...array_unique([
       ...Cases::getMediaIds($pk_data_set),
       ...Cases::getMediaIds([$case_data,]),
-      ...Comment::getMediaIds($comment_data_set),
+      ...Comment::getMediaIds($cm_data_set),
     ])];
 
     $rows = $media_ids ? RDS::fetchAll("SELECT `id`, `name` FROM `media` WHERE `id` IN (" . implode(",", array_fill(0, ($limit = count($media_ids)), "?")) . ") AND `status`=? LIMIT {$limit};", [
@@ -149,19 +150,30 @@ class HTMLDocumentCaseContent implements HTMLDocumentContentInterface
       if (count($pk_data[1]) >= 24) break;
     }
 
-    $comment_data_set = Comment::parse($comment_data_set, $media_map);
+    $cm_data_set = Comment::parse($cm_data_set, $media_map);
 
-    $comment_has_video = false;
+    $cm_has_video = false;
 
-    for ($i = 0; count($comment_data_set) > $i; $i++) {
-      if ($comment_data_set[$i]["private"]) {
-        unset($comment_data_set[$i]["body"]);
+    $cm_map = array_combine(array_column($cm_data_set, "id"), array_fill(0, count($cm_data_set), true));
+
+    $cm_data_set = [...array_filter($cm_data_set, fn (array $item) => !($item["parent"] && !($cm_map[$item["parent"]] ?? null))),];
+
+    for ($i = 0; count($cm_data_set) > $i; $i++) {
+      if ($cm_data_set[$i]["private"]) {
+        unset($cm_data_set[$i]["body"]);
       } else {
-        if ($comment_data_set[$i]["body"]["videos"] ?? null) $comment_has_video = true;
+        if ($cm_data_set[$i]["body"]["videos"] ?? null) $cm_has_video = true;
       }
     }
 
-    array_multisort(array_column($comment_data_set, "updated_at"), SORT_DESC, $comment_data_set);
+    array_multisort(array_map(fn ($cm_data) => (!$cm_data["parent"] ? $cm_data["updated_at"] : -1), $cm_data_set), SORT_DESC, array_column($cm_data_set, "id"), SORT_ASC, $cm_data_set);
+
+    self::$data = [
+      "data" => [
+        "id" => $case_data["id"],
+        "animal" => $case_data["animal"],
+      ],
+    ];
 
     $head = $case_data["head"];
     $pet = $head["pet"] ?? null;
@@ -214,7 +226,7 @@ class HTMLDocumentCaseContent implements HTMLDocumentContentInterface
     if ($publish) self::$css[] = 42;
     if (!$publish || $expires_soon) self::$css[] = 32;
     if ((!$publish && ($case_data["head"]["cover"] ?? null)) || ($case_data["body"]["photos"] ?? null)) self::$css[] = 43;
-    if ($comment_has_video || ($case_data["body"]["videos"] ?? null)) self::$css[] = 44;
+    if ($cm_has_video || ($case_data["body"]["videos"] ?? null)) self::$css[] = 44;
 
     // for comment
     $has_email = $case_data["email"];
@@ -394,7 +406,7 @@ class HTMLDocumentCaseContent implements HTMLDocumentContentInterface
     ];
 
     return [
-      "comment" => $comment_data_set,
+      "comment" => $cm_data_set,
       "data" => $case_data,
       "breadcrumb" => $breadcrumb_items,
       "pickup" => $pk_data,
