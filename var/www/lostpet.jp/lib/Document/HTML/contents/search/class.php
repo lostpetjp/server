@@ -22,6 +22,7 @@ class HTMLDocumentSearchContent implements HTMLDocumentContentInterface
   static public array $head = [];
 
   static public array $schema = [];
+  static public array $data = [];
 
   static public function create(string $pathname): array
   {
