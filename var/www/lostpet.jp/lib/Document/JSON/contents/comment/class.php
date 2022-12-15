@@ -8,30 +8,31 @@ class JSONDocumentComment
 
   static public function create()
   {
-    $case_id = (int)($_GET["id"] ?? null);
+    if (is_string($_COOKIE["PHPSESSID"] ?? null)) Session::load(true);
 
-    if ($case_id) {
-      $case_data = RDS::fetch("SELECT * FROM `case` WHERE `id`=? LIMIT 1;", [
-        $case_id,
-      ]);
+    $case_id = $_GET["id"];
 
-      $version = $case_data["updated_at"];
-      Etag::generate(_PATH_,  max(filemtime(__FILE__), $version));
+    $case_data = RDS::fetch("SELECT * FROM `case` WHERE `id`=? LIMIT 1;", [
+      $case_id,
+    ]);
 
-      $case_data["head"] = json_decode($case_data["head"], true);
-      $case_data["body"] = json_decode($case_data["body"], true);
+    $version = $case_data["updated_at"];
+    Etag::generate(_PATH_,  max(filemtime(__FILE__), $version));
 
-      // for media
-      [$case_data,] = Cases::parse([$case_data,]);
+    $case_data["head"] = json_decode($case_data["head"], true);
+    $case_data["body"] = json_decode($case_data["body"], true);
 
-      var_dump($case_data);
-      exit;
+    // for media
+    [$case_data,] = Cases::parse([$case_data,]);
 
-      return [
-        "data" => $case_data,
-        "status" => true,
-      ];
-    }
+    var_dump($case_data);
+    exit;
+
+    return [
+      "data" => $case_data,
+      "status" => true,
+    ];
+
 
     return [
       "status" => false,
