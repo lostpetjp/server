@@ -90,6 +90,7 @@ class Cases
       "attribute" => [
         "class" => "c26i",
         "href" => "/" . $item["id"],
+        "role" => "listitem",
       ],
       "children" => [
         "attribute" => [
