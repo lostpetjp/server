@@ -60,6 +60,9 @@ class JSONDocument
         } elseif ("/api/private/session" === _PATH_) {
           require __DIR__ . "/contents/session/index.php";
           $content = JSONDocumentSession::class;
+        } elseif ("/api/private/comment" === _PATH_ && is_int($_GET["id"] ?? null)) {
+          require __DIR__ . "/contents/comment/index.php";
+          $content = JSONDocumentComment::class;
         }
       }
     }
