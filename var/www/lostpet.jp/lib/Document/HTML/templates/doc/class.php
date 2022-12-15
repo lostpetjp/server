@@ -9,6 +9,7 @@ class HTMLDocumentDocTemplate implements HTMLDocumentTemplateInterface
   ];
 
   static public array $js = [];
+  static public array $data = [];
 
   static public function create(HTMLDocumentClient $client): array
   {
