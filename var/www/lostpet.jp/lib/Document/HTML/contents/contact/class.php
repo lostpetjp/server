@@ -18,6 +18,7 @@ class HTMLDocumentContactContent implements HTMLDocumentContentInterface
   ];
 
   static public array $js = [];
+  static public array $data = [];
 
   static public string $title = "問い合わせ";
   static public string $description = "LOSTPET.JP (迷子ペットのデータベース)に関するお問い合わせや報告、要望などを受け付けてます。";
