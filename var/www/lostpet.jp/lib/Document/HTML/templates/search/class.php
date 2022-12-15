@@ -14,6 +14,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
   ];
 
   static public array $js = [];
+  static public array $data = [];
 
   static public function create(HTMLDocumentClient $client): array
   {
@@ -420,6 +421,7 @@ class HTMLDocumentSearchTemplate implements HTMLDocumentTemplateInterface
           [
             "attribute" => [
               "class" => "c25f c26",
+              "role" => "list",
             ],
             "children" => array_map(fn (array $item) => Cases::createCard($item), $object["items"]),
             "tagName" => "div",
