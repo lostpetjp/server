@@ -19,6 +19,7 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
   ];
 
   static public array $js = [];
+  static public array $data = [];
 
   static public function create(HTMLDocumentClient $client): array
   {
@@ -285,7 +286,6 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
               [
                 "attribute" => [
                   "class" => "c2",
-                  "id" => "a",
                 ],
                 "children" => "写真",
                 "tagName" => "h2",
@@ -305,7 +305,6 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
               [
                 "attribute" => [
                   "class" => "c2",
-                  "id" => "b",
                 ],
                 "children" => "動画",
                 "tagName" => "h2",
@@ -325,7 +324,6 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
               [
                 "attribute" => [
                   "class" => "c2",
-                  "id" => "c",
                 ],
                 "children" => "詳細",
                 "tagName" => "h2",
@@ -388,11 +386,13 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
             "tagName" => "section",
           ],
           $publish ? [
+            "attribute" => [
+              "id" => "comment",
+            ],
             "children" => [
               [
                 "attribute" => [
                   "class" => "c2",
-                  "id" => "d",
                 ],
                 "children" => [
                   "掲示板",
@@ -429,6 +429,7 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
                   [
                     "attribute" => [
                       "class" => "c4w",
+                      "aria-hidden" => "true",
                     ],
                     "children" => [
                       "attribute" => [
@@ -485,7 +486,6 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
               [
                 "attribute" => [
                   "class" => "c2",
-                  "id" => "e",
                 ],
                 "children" => "新着の案件",
                 "tagName" => "h2",
@@ -493,6 +493,7 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
               [
                 "attribute" => [
                   "class" => "c26",
+                  "role" => "list",
                 ],
                 "children" => array_map(fn (array $item) => Cases::createCard($item), $pk_items[0]),
                 "tagName" => "div",
@@ -507,7 +508,7 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
                     "href" => "/search/",
                   ],
                   "children" => "すべて見る",
-                  "tagName" => "button",
+                  "tagName" => "a",
                 ],
                 "tagName" => "div",
               ],
@@ -519,7 +520,6 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
               [
                 "attribute" => [
                   "class" => "c2",
-                  "id" => "f",
                 ],
                 "children" => "ピックアップ",
                 "tagName" => "h2",
@@ -527,6 +527,7 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
               [
                 "attribute" => [
                   "class" => "c26",
+                  "role" => "list",
                 ],
                 "children" => array_map(fn (array $item) => Cases::createCard($item), $pk_items[1]),
                 "tagName" => "div",
@@ -541,7 +542,7 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
                     "href" => "/search/",
                   ],
                   "children" => "すべて見る",
-                  "tagName" => "button",
+                  "tagName" => "a",
                 ],
                 "tagName" => "div",
               ],
@@ -565,8 +566,6 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
       }
     }
 
-    array_multisort(array_column($thread_comments, "id"), SORT_ASC, $thread_comments);
-
     $children = [];
     $thread_title = null;
     $is_private = null;
@@ -587,6 +586,7 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
         $children[] = [
           "attribute" => [
             "class" => "c42t",
+            "id" => "comment-{$id}-" . $comment["id"],
           ],
           "children" => [
             [
@@ -616,7 +616,7 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
                           "attribute" => [
                             "class" => "c42d1b1",
                           ],
-                          "children" => "",
+                          "children" => $head["trip"],
                           "tagName" => "span",
                         ],
                       ],
@@ -692,7 +692,7 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
                     "class" => "c42o1",
                   ],
                   "children" => date("Y/m/d H:i", $comment["created_at"]),
-                  "tagName" => "div",
+                  "tagName" => "time",
                 ],
                 !$is_private ? [
                   "attribute" => [
@@ -701,6 +701,7 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
                   "children" => [
                     "attribute" => [
                       "class" => "c42o2a",
+                      "role" => "button",
                     ],
                     "children" => "削除",
                     "tagName" => "a",
@@ -719,6 +720,7 @@ class HTMLDocumentCaseTemplate implements HTMLDocumentTemplateInterface
     return [
       "attribute" => [
         "class" => "c42b1",
+        "id" => "comment-{$id}",
       ],
       "children" => [
         [
