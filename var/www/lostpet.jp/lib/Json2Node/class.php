@@ -111,6 +111,7 @@ class Json2Node
 
       $info = parse_url($url);
       $is_samesite = strpos($info["host"], _DOMAIN_);
+      $suffix = $info["path"] . ($info["query"] ?? "") . ($info["fragment"] ?? "");
 
       $nodes[] = [
         "attribute" => [
@@ -120,7 +121,7 @@ class Json2Node
           "target" => "_blank",
           "rel" => "external nofollow noopener",
         ] : []),
-        "children" => $info["scheme"] . "://" . $info["host"] . (strlen($info["path"]) > 21 ? substr($info["path"], 0, 20) . "..." : $info["path"]),
+        "children" => $info["scheme"] . "://" . $info["host"] . (strlen($suffix) > 21 ? substr($suffix, 0, 20) . "..." : $suffix),
         "tagName" => "a",
       ];
 
