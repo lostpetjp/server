@@ -107,7 +107,9 @@ class HTMLDocument
           "content" => $this->client->content,
           "pathname" => $this->client->pathname,
           "search" => $this->client->search,
-        ],
+        ] + ($this->client->data ? [
+          "data" => $this->client->data,
+        ] : []),
         "version" => 0,
       ])
       .     ';document.currentScript.remove()</script>'
@@ -406,6 +408,9 @@ class HTMLDocumentClient
   public array $css = [];
   public array $schema = [];
 
+  // SSR時に渡したいデータ
+  public array $data = [];
+
   public function __construct(string $content, string $pathname, int $mode)
   {
     $template = $content::$template;
@@ -544,6 +549,8 @@ class HTMLDocumentClient
       ...$template::$js,
       ...$content::$js,
     ])];
+
+    $this->data = $content::$data + $template::$data;
 
     if (1 === $mode) {
       $this->body = $template::create($this);
